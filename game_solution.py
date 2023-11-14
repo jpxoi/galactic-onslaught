@@ -7,6 +7,7 @@ GAME_HEIGHT = 900 # Game window height
 GAME_SPEED = 240 # Game speed (FPS)
 
 # CLASS DEFINITIONS
+# Define the Game class to represent the game window and its contents
 class Game:
     # Define the constructor method of the Game class
     def __init__(self, master):
@@ -29,6 +30,12 @@ class Game:
         self.bgImage1 = self.canvas.create_image(0, 0, anchor="nw", image=self.backgroundImage) # Create the first background image at the top-left corner of the canvas
         self.bgImage2 = self.canvas.create_image(0, -GAME_HEIGHT, anchor="nw", image=self.backgroundImage) # Create the second background image above the first background image
 
+        # Initialize score
+        self.score = 0
+
+        # Create the score label on the canvas
+        self.score_label = self.canvas.create_text(GAME_WIDTH - 20, 30, text=f"Score: {self.score}", fill="white", font=("Helvetica", 16), anchor="e", tag="score")
+
         # Create the space fighter
         self.spaceFighter = SpaceFighter(self.canvas)
 
@@ -36,10 +43,24 @@ class Game:
         self.canvas.focus_set()
 
         # Schedule the update_background method to run inmediately
-        self.master.after(0, self.update_background)
+        self.master.after(0, self.update_screen)
+
+    def update_screen(self):
+        # Update the background images for infinite scrolling
+        self.scroll_background()
+
+        # Move the lasers
+        self.spaceFighter.move_lasers()
+
+        # Schedule the update_screen method to run again (recursion) after (1000 // GAME_SPEED) milliseconds (1000 milliseconds = 1 second)
+        self.master.after(1000 // GAME_SPEED, self.update_screen)
+
+    def update_score(self):
+        self.score += 1
+        self.canvas.itemconfig(self.score_label, text=f"Score: {self.score}")
     
-    # Define the update_background method to update the background images for infinite scrolling
-    def update_background(self):
+    # Define the scroll_background method to update the background images for infinite scrolling
+    def scroll_background(self):
         # Update the vertical position of the background images
         self.canvas.move(self.bgImage1, 0, 4) # Move the first background image down by 4 pixels
         self.canvas.move(self.bgImage2, 0, 4) # Move the second background image down by 4 pixels
@@ -58,9 +79,7 @@ class Game:
             # Reset its position above the first background image
             self.canvas.move(self.bgImage2, 0, -2 * GAME_HEIGHT)
 
-        # Schedule the update_background method to run again (recursion) after (1000 // GAME_SPEED) milliseconds (1000 milliseconds = 1 second)
-        self.master.after(1000 // GAME_SPEED, self.update_background)
-
+# Define the SpaceFighter class to represent the space fighter in the game
 class SpaceFighter:
     # Define the constructor method of the SpaceFighter class
     def __init__(self, canvas):
@@ -91,9 +110,13 @@ class SpaceFighter:
         # Display the space fighter on the canvas and store it as an instance variable
         self.spaceFighterImage = self.canvas.create_image(self.x, self.y, anchor="center", image=self.spaceFighterSprites[self.currentSprite])
 
-        # Bind the arrow key events to the corresponding methods
+        # Create a list to store the lasers
+        self.lasers = []
+
+        # Bind the key events to the corresponding methods
         self.canvas.bind("<Left>", self.move_left) # Bind the left arrow key to the move_left method
         self.canvas.bind("<Right>", self.move_right) # Bind the right arrow key to the move_right method
+        self.canvas.bind("<space>", self.shoot) # Bind the space bar to the shoot method
     
     # Define the move_left method to move the space fighter to the left
     def move_left(self, event):
@@ -113,7 +136,45 @@ class SpaceFighter:
     def update_position(self):
         self.canvas.coords(self.spaceFighterImage, self.x, self.y)
 
+    def shoot(self, event):
+        # Create a laser at the current position of the space fighter
+        laser = Laser(self.canvas, self.x, self.y)
+        self.lasers.append(laser)
 
+    def move_lasers(self):
+        # Move all the lasers in the list
+        for laser in self.lasers:
+            laser.move()
+
+# Define the Laser class to represent the laser beam in the game
+class Laser:
+    # Define the constructor method of the Laser class
+    def __init__(self, canvas, x, y):
+        # Store the canvas as an instance variable
+        self.canvas = canvas
+
+        # Initial coordinates of the laser
+        self.x = x # Same x-coordinate as the space fighter
+        self.y = y - 40 # 40 pixels above the space fighter
+
+        # Speed of the laser
+        self.speed = 10  # Speed of the laser
+
+        # Load and store the laser image as an instance variable
+        self.laserImage = PhotoImage(file="assets/img/laser-beam.png")
+        # Laser graphic made by me (Jean Paul Fernandez) using Adobe Photoshop [https://adobe.com/products/photoshop/].
+
+        # Display the laser on the canvas and store it as an instance variable
+        self.laserBeam = self.canvas.create_image(self.x, self.y, anchor="center", image=self.laserImage)
+
+    # Define the move method to move the laser upwards
+    def move(self):
+        self.y -= self.speed  # Move the laser upwards
+        self.canvas.coords(self.laserBeam, self.x, self.y) # Update the position of the laser on the canvas
+
+        # Remove the laser if it goes beyond the top of the canvas
+        if self.y < 0:
+            self.canvas.delete(self.laserBeam)
 
 # MAIN PROGRAM
 if __name__ == "__main__":
