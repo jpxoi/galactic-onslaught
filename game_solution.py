@@ -1,7 +1,8 @@
 from tkinter import Tk, Canvas, PhotoImage
+import random
 
 # GLOBAL SCOPE CONSTANTS AND VARIABLES
-GAME_TITLE = "Space Invaders Redux" # Game title
+GAME_TITLE = "Space Invaders 3D" # Game title
 GAME_WIDTH = 1440 # Game window width
 GAME_HEIGHT = 900 # Game window height
 GAME_SPEED = 240 # Game speed (FPS)
@@ -39,6 +40,9 @@ class Game:
         # Create the space fighter
         self.spaceFighter = SpaceFighter(self.canvas)
 
+        # Create the alien ship
+        self.alienShip = AlienShip(self.canvas)
+
         # Set focus to the canvas
         self.canvas.focus_set()
 
@@ -51,6 +55,9 @@ class Game:
 
         # Move the lasers
         self.spaceFighter.move_lasers()
+
+        # Move the alien ship
+        self.alienShip.move()
 
         # Schedule the update_screen method to run again (recursion) after (1000 // GAME_SPEED) milliseconds (1000 milliseconds = 1 second)
         self.master.after(1000 // GAME_SPEED, self.update_screen)
@@ -175,6 +182,53 @@ class Laser:
         # Remove the laser if it goes beyond the top of the canvas
         if self.y < 0:
             self.canvas.delete(self.laserBeam)
+
+class AlienShip:
+    def __init__(self, canvas):
+        self.canvas = canvas
+        self.x = 0
+        self.y = 0
+
+        self.alienSprites = {
+            "main": PhotoImage(file="assets/img/alien-ship-main.png"), # Main sprite - default
+            "destroyed": PhotoImage(file="assets/img/alien-ship-destroyed.png"), # Destroyed sprite - when hit by a laser
+            "explosion": PhotoImage(file="assets/img/alien-ship-explosion.png") # Explosion sprite - when destroyed
+            # Sprites generated using Canva's AI image generator Magic Media [https://www.canva.com/ai-image-generator/]
+            # Input prompt "3D Cartoon 4K Animated and Futuristic Alien UFO. 2D view from the top of it. Place it on a black background."
+            # Background removed using Canva's Magic Studio [https://www.canva.com/magic/].
+            # Additional graphic "Cosmic explosion orange" Anna Kuz on Canva's free media library [https://www.canva.com/features/free-stock-photos/].
+            # Further modifications made using Canva's image editor [https://canva.com].
+            # Editable file available as view-only at https://www.canva.com/design/DAF0GJfd7jU/PrEOAQ9Z_rp3vRWcLYkN3Q/edit
+        }
+
+        # Properties of the alien ship
+        self.currentSprite = "main"
+        # Set the speed of the alien ship
+        self.speed = 5
+        self.width = 100
+        self.height = 100
+
+        # Create the alien ship
+        self.create_alien_ship()
+
+    def create_alien_ship(self):
+        # Create a new alien ship at a random position on the top of the canvas
+        self.x = random.randint(0, GAME_WIDTH)
+        self.y = 0
+
+        self.alienShipImage = self.canvas.create_image(self.x, self.y, anchor="center", image=self.alienSprites[self.currentSprite])
+
+        # Recursively call the create_alien_ship method after random time intervals
+        self.canvas.after(random.randint(1000, 5000), self.create_alien_ship)
+
+    # Define the move method to move the alien ship downwards
+    def move(self):
+        self.y += self.speed  # Move the alien ship downwards
+        self.canvas.coords(self.alienShipImage, self.x, self.y)  # Update the position of the alien ship on the canvas
+
+        # Remove the alien ship if it goes beyond the bottom of the canvas
+        if self.y > GAME_HEIGHT:
+            self.canvas.delete(self.alienShipImage)
 
 # MAIN PROGRAM
 if __name__ == "__main__":
