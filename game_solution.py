@@ -18,11 +18,12 @@ class Game:
 
         # Define game variables
         self.score = 0
+        self.lives = 3
         self.paused = False
         self.run = True
-        self.lives = 3
         self.level = 1
         self.gameOver = False
+        self.lostCount = 0
 
         # Load and store the background image as an instance variable
         self.backgroundImage = PhotoImage(file="assets/img/background.png")
@@ -47,13 +48,22 @@ class Game:
         self.spaceFighter = SpaceFighter(self.canvas)
 
         # Create the score label on the canvas
-        self.score_label = self.canvas.create_text(constants.GAME_WIDTH - 20, 30, text=f"Score: {self.score}", fill="white", font=("Helvetica", 16), anchor="e", tag="score")
+        self.score_label = self.canvas.create_text(constants.GAME_WIDTH - 20, 30, text=f"Score: {self.score}", fill=constants.GAME_FONT_COLOR, font=(constants.GAME_SMALL_FONT), anchor="e", tag="score")
+
+        # Create the lives label on the canvas
+        self.lives_label = self.canvas.create_text(constants.GAME_WIDTH - 20, 70, text=f"Lives: {self.lives}", fill=constants.GAME_FONT_COLOR, font=(constants.GAME_SMALL_FONT), anchor="e", tag="lives")
+        # Bind the key events to the corresponding methods
+        self.canvas.bind("<B>", self.boss_key)
 
         # Set focus to the canvas
         self.canvas.focus_set()
 
         # Start the clock
         self.clock()
+
+    def boss_key(self, event):
+        # Minimize the window
+        self.master.iconify()
 
     def clock(self):
         # Update the screen
@@ -70,7 +80,7 @@ class Game:
 
         if len(self.alien_ships) == 0:
             self.level += 1
-            self.wave_length += 5
+            self.wave_length += 3
             self.alien_ship_speed += 2
 
             for i in range(self.wave_length):
@@ -88,6 +98,16 @@ class Game:
     def update_score(self):
         self.score += 1
         self.canvas.itemconfig(self.score_label, text=f"Score: {self.score}")
+
+    def update_lives(self):
+        self.canvas.itemconfig(self.lives_label, text=f"Lives: {self.lives}")
+
+        if self.lives <= 0:
+            self.game_over()
+
+    def game_over(self):
+        self.gameOver = True
+        self.canvas.create_text(constants.GAME_WIDTH // 2, constants.GAME_HEIGHT // 2, text="GAME OVER", fill=constants.GAME_FONT_COLOR, font=(constants.GAME_LARGE_FONT_BOLD), anchor="center", tag="game_over")
     
     # Define the scroll_background method to update the background images for infinite scrolling
     def scroll_background(self, speed):
@@ -95,9 +115,9 @@ class Game:
         self.canvas.move(self.bgImage1, 0, speed) # Move the first background image down by 4 pixels
         self.canvas.move(self.bgImage2, 0, speed) # Move the second background image down by 4 pixels
 
-        # Get the current y-coordinates of the background images
-        _, y1, _, _ = self.canvas.bbox(self.bgImage1) # Get the y-coordinate of the first background image
-        _, y2, _, _ = self.canvas.bbox(self.bgImage2) # Get the y-coordinate of the second background image
+        # The bbox method returns a tuple containing the coordinates (x, y, width, height) of the specified item on the canvas.
+        _, y1, _, _ = self.canvas.bbox(self.bgImage1)
+        _, y2, _, _ = self.canvas.bbox(self.bgImage2)
 
         # Check if the first background image is out of the canvas
         if y1 >= constants.GAME_HEIGHT:
@@ -144,10 +164,30 @@ class SpaceFighter:
         self.lasers = []
 
         # Bind the key events to the corresponding methods
+        self.canvas.bind("<F>", self.update_sprite)
+
+
         self.canvas.bind("<Left>", self.move_left) # Bind the left arrow key to the move_left method
         self.canvas.bind("<Right>", self.move_right) # Bind the right arrow key to the move_right method
         self.canvas.bind("<space>", self.shoot) # Bind the space bar to the shoot method
     
+    # Define the update_sprite method to update the sprite of the space fighter
+    def update_sprite(self, event):
+        # Check if the space fighter is in its main sprite
+        if self.currentSprite == "main":
+            # Change the sprite of the space fighter to super
+            self.currentSprite = "super"
+            # Change the image of the space fighter to the super sprite
+            self.canvas.itemconfig(self.spaceFighterImage, image=self.spaceFighterSprites[self.currentSprite])
+        # Check if the space fighter is in its super sprite
+        elif self.currentSprite == "super":
+            # Change the sprite of the space fighter to main
+            self.currentSprite = "main"
+            # Change the image of the space fighter to the main sprite
+            self.canvas.itemconfig(self.spaceFighterImage, image=self.spaceFighterSprites[self.currentSprite])
+
+        self.canvas.focus_set()
+
     # Define the move_left method to move the space fighter to the left
     def move_left(self, event):
         # Check if the space fighter is not yet at the leftmost part of the canvas
@@ -254,7 +294,12 @@ class AlienShip:
 
         # Remove the alien ship if it goes beyond the bottom of the canvas
         if self.y > constants.GAME_HEIGHT:
+            # Remove the alien ship from the canvas
             self.canvas.delete(self.alienShipImage)
+
+            # Update the lives of the player
+            game.lives -= 1
+            game.update_lives()
             
             # Remove the alien ship from the alien_ships array
             if self in game.alien_ships:
@@ -262,6 +307,7 @@ class AlienShip:
         
         # Check if it's time for the alien to shoot
         current_time = time.time() * 1000  # Convert to milliseconds
+        
         if current_time - self.last_shot_time > self.shoot_delay:
             self.shoot()
             self.last_shot_time = current_time
@@ -296,6 +342,9 @@ class AlienLaser:
 
 # MAIN PROGRAM
 if __name__ == "__main__":
-    root = Tk() # Create the root window
-    game = Game(root) # Create the game instance
-    root.mainloop() # Run the main loop
+    # Create the root window, and pass it to the Game class
+    root = Tk()
+    game = Game(root)
+
+    # Run the main loop
+    root.mainloop()
