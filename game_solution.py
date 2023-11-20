@@ -1,24 +1,19 @@
 from tkinter import Tk, Canvas, PhotoImage
 import random
+import time
+import constants
 
-# GLOBAL SCOPE CONSTANTS AND VARIABLES
-GAME_TITLE = "Space Invaders 3D" # Game title
-GAME_WIDTH = 1440 # Game window width
-GAME_HEIGHT = 900 # Game window height
-GAME_SPEED = 60 # Game speed (FPS)
-
-# CLASS DEFINITIONS
 # Define the Game class to represent the game window and its contents
 class Game:
     # Define the constructor method of the Game class
     def __init__(self, master):
         # Store the root window as an instance variable
         self.master = master
-        self.master.title(GAME_TITLE) # Set the title of the window to the game title (GAME_TITLE)
-        self.master.geometry(f"{GAME_WIDTH}x{GAME_HEIGHT}+0+0") # Set the size of the window to the game size (GAME_WIDTH x GAME_HEIGHT) and position it at the top-left corner of the screen (+0+0)
+        self.master.title(constants.GAME_TITLE) # Set the title of the window to the game title (constants.GAME_TITLE)
+        self.master.geometry(f"{constants.GAME_WIDTH}x{constants.GAME_HEIGHT}+0+0") # Set the size of the window to the game size (constants.GAME_WIDTH x constants.GAME_HEIGHT) and position it at the top-left corner of the screen (+0+0)
 
         # Create the canvas widget and pack it to the root window
-        self.canvas = Canvas(master, bg="black", width=GAME_WIDTH, height=GAME_HEIGHT) # Create the canvas widget with a black background and the game size (GAME_WIDTH x GAME_HEIGHT)
+        self.canvas = Canvas(master, bg="black", width=constants.GAME_WIDTH, height=constants.GAME_HEIGHT) # Create the canvas widget with a black background and the game size (constants.GAME_WIDTH x constants.GAME_HEIGHT)
         self.canvas.pack()
 
         # Define game variables
@@ -37,22 +32,22 @@ class Game:
 
         # Create two background images for seamless scrolling
         self.bgImage1 = self.canvas.create_image(0, 0, anchor="nw", image=self.backgroundImage) # Create the first background image at the top-left corner of the canvas
-        self.bgImage2 = self.canvas.create_image(0, -GAME_HEIGHT, anchor="nw", image=self.backgroundImage) # Create the second background image above the first background image
+        self.bgImage2 = self.canvas.create_image(0, -constants.GAME_HEIGHT, anchor="nw", image=self.backgroundImage) # Create the second background image above the first background image
 
         # Store Enemy objects in a list
-        self.enemies = []
+        self.alien_ships = []
         self.wave_length = 0
-        self.enemy_speed = 2
+        self.alien_ship_speed = 2
         
         # Create the alien ship
-        for self.enemy in self.enemies:
-            self.enemy = AlienShip(self.canvas, self.enemy_speed)
+        for self.alien_ship in self.alien_ships:
+            self.alien_ship = AlienShip(self.canvas, self.alien_ship_speed)
 
         # Create the space fighter
         self.spaceFighter = SpaceFighter(self.canvas)
 
         # Create the score label on the canvas
-        self.score_label = self.canvas.create_text(GAME_WIDTH - 20, 30, text=f"Score: {self.score}", fill="white", font=("Helvetica", 16), anchor="e", tag="score")
+        self.score_label = self.canvas.create_text(constants.GAME_WIDTH - 20, 30, text=f"Score: {self.score}", fill="white", font=("Helvetica", 16), anchor="e", tag="score")
 
         # Set focus to the canvas
         self.canvas.focus_set()
@@ -64,27 +59,31 @@ class Game:
         # Update the screen
         self.update_screen()
 
-        self.master.after(1000 // GAME_SPEED, self.clock)
+        self.master.after(1000 // constants.GAME_SPEED, self.clock)
 
     def update_screen(self):
         # Update the background images for infinite scrolling
-        self.scroll_background(self.enemy_speed // 2)
+        self.scroll_background(self.alien_ship_speed // 2)
         
         # Move the lasers
         self.spaceFighter.move_lasers()
 
-        if len(self.enemies) == 0:
+        if len(self.alien_ships) == 0:
             self.level += 1
             self.wave_length += 5
-            self.enemy_speed += 2
+            self.alien_ship_speed += 2
 
             for i in range(self.wave_length):
-                self.enemy = AlienShip(self.canvas, self.enemy_speed)
-                self.enemies.append(self.enemy)
+                self.enemy = AlienShip(self.canvas, self.alien_ship_speed)
+                self.alien_ships.append(self.enemy)
 
-        # Move the alien ship
-        for self.enemy in self.enemies:
-            self.enemy.move()
+        # Move the alien ship and handle shooting
+        for alien_ship in self.alien_ships:
+            alien_ship.move()
+            
+            # Move and update the alien lasers
+            for alien_laser in alien_ship.alien_lasers:
+                alien_laser.move()
 
     def update_score(self):
         self.score += 1
@@ -101,14 +100,14 @@ class Game:
         _, y2, _, _ = self.canvas.bbox(self.bgImage2) # Get the y-coordinate of the second background image
 
         # Check if the first background image is out of the canvas
-        if y1 >= GAME_HEIGHT:
+        if y1 >= constants.GAME_HEIGHT:
             # Reset its position above the second background image
-            self.canvas.move(self.bgImage1, 0, -2 * GAME_HEIGHT)
+            self.canvas.move(self.bgImage1, 0, -2 * constants.GAME_HEIGHT)
 
         # Check if the second background image is out of the canvas
-        if y2 >= GAME_HEIGHT:
+        if y2 >= constants.GAME_HEIGHT:
             # Reset its position above the first background image
-            self.canvas.move(self.bgImage2, 0, -2 * GAME_HEIGHT)
+            self.canvas.move(self.bgImage2, 0, -2 * constants.GAME_HEIGHT)
 
 # Define the SpaceFighter class to represent the space fighter in the game
 class SpaceFighter:
@@ -135,8 +134,8 @@ class SpaceFighter:
         self.height = 150 # Height of the space fighter
 
         # Initial coordinates of the space fighter
-        self.x = GAME_WIDTH // 2 # Center of the canvas
-        self.y = GAME_HEIGHT - 90 # 90 pixels above the bottom of the canvas
+        self.x = constants.GAME_WIDTH // 2 # Center of the canvas
+        self.y = constants.GAME_HEIGHT - 90 # 90 pixels above the bottom of the canvas
 
         # Display the space fighter on the canvas and store it as an instance variable
         self.spaceFighterImage = self.canvas.create_image(self.x, self.y, anchor="center", image=self.spaceFighterSprites[self.currentSprite])
@@ -159,7 +158,7 @@ class SpaceFighter:
     # Define the move_right method to move the space fighter to the right
     def move_right(self, event):
         # Check if the space fighter is not yet at the rightmost part of the canvas
-        if self.x < GAME_WIDTH - (self.width / 2 + 15):
+        if self.x < constants.GAME_WIDTH - (self.width / 2 + 15):
             self.x += self.speed # Move the space fighter to the right by the speed of the space fighter
             self.update_position() # Update the position of the space fighter on the canvas
 
@@ -236,9 +235,14 @@ class AlienShip:
         # Create the alien ship
         self.create_alien_ship()
 
+        # Properties for shooting lasers
+        self.alien_lasers = []
+        self.shoot_delay = 2000  # Delay between shots in milliseconds
+        self.last_shot_time = 0  # Time of the last shot
+
     def create_alien_ship(self):
         # Create a new alien ship at a random position on the top of the canvas
-        self.x = random.randint(75, GAME_WIDTH - 75)
+        self.x = random.randint(75, constants.GAME_WIDTH - 75)
         self.y = random.randint(-900, 0)
 
         self.alienShipImage = self.canvas.create_image(self.x, self.y, anchor="center", image=self.alienSprites[self.currentSprite])        
@@ -249,12 +253,46 @@ class AlienShip:
         self.canvas.coords(self.alienShipImage, self.x, self.y)  # Update the position of the alien ship on the canvas
 
         # Remove the alien ship if it goes beyond the bottom of the canvas
-        if self.y > GAME_HEIGHT:
+        if self.y > constants.GAME_HEIGHT:
             self.canvas.delete(self.alienShipImage)
             
-            # Remove the alien ship from the enemies array
-            if self in game.enemies:
-                game.enemies.remove(self)
+            # Remove the alien ship from the alien_ships array
+            if self in game.alien_ships:
+                game.alien_ships.remove(self)
+        
+        # Check if it's time for the alien to shoot
+        current_time = time.time() * 1000  # Convert to milliseconds
+        if current_time - self.last_shot_time > self.shoot_delay:
+            self.shoot()
+            self.last_shot_time = current_time
+
+    def shoot(self):
+        # Create a laser at the current position of the alien ship
+        alien_laser = AlienLaser(self.canvas, self.x, self.y)
+        self.alien_lasers.append(alien_laser)
+
+# Define the AlienLaser class to represent the laser beam of the alien ship in the game
+class AlienLaser:
+    def __init__(self, canvas, x, y):
+        self.canvas = canvas
+
+        # Initial coordinates of the alien laser
+        self.x = x
+        self.y = y
+
+        # Speed of the alien laser
+        self.speed = 10  # Adjust as needed
+
+        # Load and store the alien laser image as an instance variable
+        self.alienLaserImage = PhotoImage(file="assets/img/laser-beam.png")
+
+        # Display the alien laser on the canvas and store it as an instance variable
+        self.alienLaserObject = self.canvas.create_image(self.x, self.y, anchor="center", image=self.alienLaserImage)
+
+    def move(self):
+        self.y += self.speed  # Move the alien laser downwards
+        self.canvas.coords(self.alienLaserImage, self.x, self.y)  # Update the position of the alien laser on the canvas
+
 
 # MAIN PROGRAM
 if __name__ == "__main__":
