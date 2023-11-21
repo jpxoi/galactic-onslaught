@@ -4,8 +4,8 @@ import math
 import time
 import constants
 
-# Define the Game class to represent the game window and its contents
 class Game:
+    """The Game class represents the game window and its contents."""
     # Define the constructor method of the Game class
     def __init__(self, master):
         # Store the root window as an instance variable
@@ -26,7 +26,7 @@ class Game:
         self.lives = 3
         self.paused = False
         self.run = True
-        self.level = 1
+        self.level = 0
         self.game_over_status = False
 
         # Load and store the background image as an instance variable
@@ -42,7 +42,7 @@ class Game:
         # Store Enemy objects in a list
         self.alien_ships = []
         self.wave_length = 0
-        self.alien_ship_speed = 2
+        self.alien_ship_speed = 0
 
         # Create the alien ship
         for self.alien_ship in self.alien_ships:
@@ -68,6 +68,7 @@ class Game:
             font=(constants.GAME_SMALL_FONT),
             anchor="e",
             tag="lives")
+
         # Bind the key events to the corresponding methods
         self.canvas.bind("<B>", self.boss_key)
 
@@ -94,14 +95,8 @@ class Game:
         # Move the lasers
         self.space_fighter.move_lasers()
 
-        if len(self.alien_ships) == 0:
-            self.level += 1
-            self.wave_length += 3
-            self.alien_ship_speed += 2
-
-            for i in range(self.wave_length):
-                enemy = AlienShip(self.canvas, self.alien_ship_speed)
-                self.alien_ships.append(enemy)
+        if len(self.alien_ships) == 0 and not self.game_over_status:
+            self.level_up()
 
         # Move the alien ship and handle shooting
         for alien_ship in self.alien_ships:
@@ -129,6 +124,28 @@ class Game:
             anchor="center",
             tag="game_over")
 
+    def level_up(self):
+        self.level += 1
+        self.wave_length = int(self.level**0.7) + 2
+        self.alien_ship_speed = int(self.level**0.6) + 1
+        self.space_fighter.speed = int(self.level**0.6)+14
+
+        self.canvas.create_text(
+            constants.GAME_WIDTH // 2,
+            constants.GAME_HEIGHT // 2,
+            text=f"LEVEL {self.level}",
+            fill=constants.GAME_FONT_COLOR,
+            font=(constants.GAME_LARGE_FONT_BOLD),
+            anchor="center",
+            tag="level_up")
+
+        self.canvas.after(2000, self.canvas.delete("level_up"))
+
+        for i in range(self.wave_length):
+            enemy = AlienShip(self.canvas, self.alien_ship_speed)
+            self.alien_ships.append(enemy)
+
+
     # Define the scroll_background method to update the background images for infinite scrolling
     def scroll_background(self, speed):
         # Update the vertical position of the background images
@@ -151,6 +168,7 @@ class Game:
 
 # Define the SpaceFighter class to represent the space fighter in the game
 class SpaceFighter:
+    """The SpaceFighter class represents the space fighter in the game."""
     # Define the constructor method of the SpaceFighter class
     def __init__(self, canvas):
         self.canvas = canvas
@@ -170,7 +188,7 @@ class SpaceFighter:
 
         # Properties of the space fighter
         self.current_sprite = "main"
-        self.speed = 15
+        self.speed = 0
         self.width = 150
         self.height = 150
 
@@ -184,6 +202,8 @@ class SpaceFighter:
         self.canvas.bind("<F>", self.update_sprite)
         self.canvas.bind("<Left>", self.move_left)
         self.canvas.bind("<Right>", self.move_right)
+        self.canvas.bind("<Up>", self.move_up)
+        self.canvas.bind("<Down>", self.move_down)
         self.canvas.bind("<space>", self.shoot)
 
     def create_space_fighter(self):
@@ -228,13 +248,25 @@ class SpaceFighter:
             self.x += self.speed
             self.update_position(event)
 
+    def move_up(self, event):
+        # Check if the space fighter is not yet at the topmost part of the canvas
+        if self.y > self.height / 2 + 400:
+            self.y -= self.speed
+            self.update_position(event)
+
+    def move_down(self, event):
+        # Check if the space fighter is not yet at the bottommost part of the canvas
+        if self.y < constants.GAME_HEIGHT - (self.height / 2 + 15):
+            self.y += self.speed
+            self.update_position(event)
+
     # Update the position of the space fighter on the canvas
     def update_position(self, event):
         self.canvas.coords(self.space_fighter_image, self.x, self.y)
 
     def shoot(self, event):
         # Create a laser at the current position of the space fighter
-        laser = Laser(self.canvas, self.x, self.y - 40)
+        laser = Laser(self.canvas, self.x, self.y - 40, self.speed - 5, "up", "main")
         self.lasers.append(laser)
 
     def move_lasers(self):
@@ -244,6 +276,7 @@ class SpaceFighter:
 
 # Define the SlienShip class to represent the alien ship in the game
 class AlienShip:
+    """The AlienShip class represents the alien ship in the game."""
     def __init__(self, canvas, speed):
         self.canvas = canvas
         self.x = 0
@@ -325,6 +358,7 @@ class AlienShip:
 
 # Define the Laser class to represent the laser beam in the game
 class Laser:
+    """The Laser class represents the laser beam in the game."""
     # Define the constructor method of the Laser class
     def __init__(self, canvas, x, y, speed = 10, direction = "up", sprite = "main"):
         self.canvas = canvas
@@ -344,7 +378,7 @@ class Laser:
 
         self.current_sprite = sprite
         self.laser_image = self.laser_sprites[sprite]
-        
+
         # Display the laser on the canvas and store it as an instance variable
         self.laser_beam = self.canvas.create_image(
             self.x,
@@ -365,11 +399,7 @@ class Laser:
     def off_screen(self, height):
         return self.y <= height and self.y >= 0
 
-# MAIN PROGRAM
 if __name__ == "__main__":
-    # Create the root window, and pass it to the Game class
     root = Tk()
     game = Game(root)
-
-    # Run the main loop
     root.mainloop()
