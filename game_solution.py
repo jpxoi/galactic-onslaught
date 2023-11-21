@@ -274,6 +274,10 @@ class SpaceFighter:
         for laser in self.lasers:
             laser.move()
 
+            # Remove the laser if it goes beyond the top of the canvas
+            if laser.off_screen(0):
+                self.lasers.remove(laser)
+
 # Define the SlienShip class to represent the alien ship in the game
 class AlienShip:
     """The AlienShip class represents the alien ship in the game."""
@@ -325,9 +329,8 @@ class AlienShip:
         self.update_position()
 
         # Remove the alien ship if it goes beyond the bottom of the canvas
-        if self.y > constants.GAME_HEIGHT:
-            # Remove the alien ship from the canvas
-            self.canvas.delete(self.alien_ship_image)
+        if self.off_screen(constants.GAME_HEIGHT):
+            self.destroyed_animation()
 
             # Update the lives of the player
             game.lives -= 1
@@ -355,6 +358,34 @@ class AlienShip:
     def move_lasers(self):
         for alien_laser in self.alien_lasers:
             alien_laser.move()
+
+            # Remove the laser if it goes beyond the bottom of the canvas
+            if alien_laser.off_screen(constants.GAME_HEIGHT):
+                self.alien_lasers.remove(alien_laser)
+
+    def off_screen(self, height):
+        return self.y >= height
+
+    def destroyed_animation(self):
+        self.speed = 0
+
+        self.current_sprite = "destroyed"
+        self.canvas.itemconfig(
+            self.alien_ship_image,
+            image=self.alien_ship_sprites[self.current_sprite])
+
+        self.canvas.after(200, self.explosion_animation)
+
+    def explosion_animation(self):
+        self.current_sprite = "explosion"
+        self.canvas.itemconfig(
+            self.alien_ship_image,
+            image=self.alien_ship_sprites[self.current_sprite])
+
+        self.canvas.after(200, self.remove_alien_ship)
+
+    def remove_alien_ship(self):
+        self.canvas.delete(self.alien_ship_image)
 
 # Define the Laser class to represent the laser beam in the game
 class Laser:
@@ -397,7 +428,11 @@ class Laser:
         self.canvas.coords(self.laser_beam, self.x, self.y)
 
     def off_screen(self, height):
-        return self.y <= height and self.y >= 0
+        if self.direction == "up":
+            return self.y <= height
+
+        elif self.direction == "down":
+            return self.y >= height
 
 if __name__ == "__main__":
     root = Tk()
