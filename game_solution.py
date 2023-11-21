@@ -1,5 +1,6 @@
 from tkinter import Tk, Canvas, PhotoImage
 import random
+import math
 import time
 import constants
 
@@ -90,10 +91,7 @@ class Game:
         # Move the alien ship and handle shooting
         for alien_ship in self.alien_ships:
             alien_ship.move()
-            
-            # Move and update the alien lasers
-            for alien_laser in alien_ship.alien_lasers:
-                alien_laser.move()
+            alien_ship.move_lasers()
 
     def update_score(self):
         self.score += 1
@@ -133,8 +131,9 @@ class Game:
 class SpaceFighter:
     # Define the constructor method of the SpaceFighter class
     def __init__(self, canvas):
-        # Store the canvas as an instance variable
         self.canvas = canvas
+        self.x = constants.GAME_WIDTH // 2 # Center of the canvas
+        self.y = constants.GAME_HEIGHT - 90 # 90 pixels above the bottom of the canvas
 
         # Load and store the space fighter sprites as a dictionary
         self.spaceFighterSprites = {
@@ -148,28 +147,25 @@ class SpaceFighter:
         }
 
         # Properties of the space fighter
-        self.currentSprite = "main" # Current sprite of the space fighter
-        self.speed = 15 # Speed of the space fighter
-        self.width = 150 # Width of the space fighter
-        self.height = 150 # Height of the space fighter
+        self.currentSprite = "main"
+        self.speed = 15
+        self.width = 150
+        self.height = 150
 
-        # Initial coordinates of the space fighter
-        self.x = constants.GAME_WIDTH // 2 # Center of the canvas
-        self.y = constants.GAME_HEIGHT - 90 # 90 pixels above the bottom of the canvas
-
-        # Display the space fighter on the canvas and store it as an instance variable
-        self.spaceFighterImage = self.canvas.create_image(self.x, self.y, anchor="center", image=self.spaceFighterSprites[self.currentSprite])
+        # Create the space fighter
+        self.create_space_fighter()
 
         # Create a list to store the lasers
         self.lasers = []
 
         # Bind the key events to the corresponding methods
         self.canvas.bind("<F>", self.update_sprite)
+        self.canvas.bind("<Left>", self.move_left)
+        self.canvas.bind("<Right>", self.move_right)
+        self.canvas.bind("<space>", self.shoot)
 
-
-        self.canvas.bind("<Left>", self.move_left) # Bind the left arrow key to the move_left method
-        self.canvas.bind("<Right>", self.move_right) # Bind the right arrow key to the move_right method
-        self.canvas.bind("<space>", self.shoot) # Bind the space bar to the shoot method
+    def create_space_fighter(self):
+        self.spaceFighterImage = self.canvas.create_image(self.x, self.y, anchor="center", image=self.spaceFighterSprites[self.currentSprite])
     
     # Define the update_sprite method to update the sprite of the space fighter
     def update_sprite(self, event):
@@ -216,36 +212,6 @@ class SpaceFighter:
         for laser in self.lasers:
             laser.move()
 
-# Define the Laser class to represent the laser beam in the game
-class Laser:
-    # Define the constructor method of the Laser class
-    def __init__(self, canvas, x, y):
-        # Store the canvas as an instance variable
-        self.canvas = canvas
-
-        # Initial coordinates of the laser
-        self.x = x # Same x-coordinate as the space fighter
-        self.y = y - 40 # 40 pixels above the space fighter
-
-        # Speed of the laser
-        self.speed = 10  # Speed of the laser
-
-        # Load and store the laser image as an instance variable
-        self.laserImage = PhotoImage(file="assets/img/laser-beam.png")
-        # Laser graphic made by me (Jean Paul Fernandez) using Adobe Photoshop [https://adobe.com/products/photoshop/].
-
-        # Display the laser on the canvas and store it as an instance variable
-        self.laserBeam = self.canvas.create_image(self.x, self.y, anchor="center", image=self.laserImage)
-
-    # Define the move method to move the laser upwards
-    def move(self):
-        self.y -= self.speed  # Move the laser upwards
-        self.canvas.coords(self.laserBeam, self.x, self.y) # Update the position of the laser on the canvas
-
-        # Remove the laser if it goes beyond the top of the canvas
-        if self.y < 0:
-            self.canvas.delete(self.laserBeam)
-
 # Define the SlienShip class to represent the alien ship in the game
 class AlienShip:
     def __init__(self, canvas, speed):
@@ -267,7 +233,6 @@ class AlienShip:
 
         # Properties of the alien ship
         self.currentSprite = "main"
-        # Set the speed of the alien ship
         self.speed = speed
         self.width = 100
         self.height = 100
@@ -277,11 +242,10 @@ class AlienShip:
 
         # Properties for shooting lasers
         self.alien_lasers = []
-        self.shoot_delay = 2000  # Delay between shots in milliseconds
+        self.shoot_delay = 4000  # Delay between shots in milliseconds
         self.last_shot_time = 0  # Time of the last shot
 
     def create_alien_ship(self):
-        # Create a new alien ship at a random position on the top of the canvas
         self.x = random.randint(75, constants.GAME_WIDTH - 75)
         self.y = random.randint(-900, 0)
 
@@ -290,7 +254,8 @@ class AlienShip:
     # Define the move method to move the alien ship downwards
     def move(self):
         self.y += self.speed  # Move the alien ship downwards
-        self.canvas.coords(self.alienShipImage, self.x, self.y)  # Update the position of the alien ship on the canvas
+        self.x += 2 * math.sin(self.y / 50)  # Move the alien ship sideways
+        self.update_position()  # Update the position of the alien ship on the canvas
 
         # Remove the alien ship if it goes beyond the bottom of the canvas
         if self.y > constants.GAME_HEIGHT:
@@ -312,33 +277,51 @@ class AlienShip:
             self.shoot()
             self.last_shot_time = current_time
 
+    def update_position(self):
+        self.canvas.coords(self.alienShipImage, self.x, self.y)
+
     def shoot(self):
         # Create a laser at the current position of the alien ship
-        alien_laser = AlienLaser(self.canvas, self.x, self.y)
+        alien_laser = Laser(self.canvas, self.x, self.y, self.speed + 3, "down")
         self.alien_lasers.append(alien_laser)
 
-# Define the AlienLaser class to represent the laser beam of the alien ship in the game
-class AlienLaser:
-    def __init__(self, canvas, x, y):
+    def move_lasers(self):
+        for alien_laser in self.alien_lasers:
+            alien_laser.move()
+
+# Define the Laser class to represent the laser beam in the game
+class Laser:
+    # Define the constructor method of the Laser class
+    def __init__(self, canvas, x, y, speed = 10, direction = "up"):
         self.canvas = canvas
-
-        # Initial coordinates of the alien laser
         self.x = x
-        self.y = y
+        self.y = y - 40
 
-        # Speed of the alien laser
-        self.speed = 10  # Adjust as needed
+        # Speed of the laser
+        self.speed = 10  # Speed of the laser
+        self.direction = direction
 
-        # Load and store the alien laser image as an instance variable
-        self.alienLaserImage = PhotoImage(file="assets/img/laser-beam.png")
+        self.laserImage = PhotoImage(file="assets/img/laser-beam.png")
+        # Laser graphic made by me (Jean Paul Fernandez) using Adobe Photoshop [https://adobe.com/products/photoshop/].
 
-        # Display the alien laser on the canvas and store it as an instance variable
-        self.alienLaserObject = self.canvas.create_image(self.x, self.y, anchor="center", image=self.alienLaserImage)
+        # Display the laser on the canvas and store it as an instance variable
+        self.laserBeam = self.canvas.create_image(self.x, self.y, anchor="center", image=self.laserImage)
 
+    # Define the move method to move the laser upwards
     def move(self):
-        self.y += self.speed  # Move the alien laser downwards
-        self.canvas.coords(self.alienLaserImage, self.x, self.y)  # Update the position of the alien laser on the canvas
+        if self.direction == "up":
+            self.y -= self.speed
+        elif self.direction == "down":
+            self.y += self.speed
 
+        # Update the position of the laser on the canvas
+        self.canvas.coords(self.laserBeam, self.x, self.y)
+
+    def off_screen(self, height):
+        return self.y <= height and self.y >= 0
+    
+    def collision(self, obj):
+        return collide(self, obj)
 
 # MAIN PROGRAM
 if __name__ == "__main__":
