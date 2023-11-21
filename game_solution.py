@@ -27,7 +27,7 @@ class Game:
         self.paused = False
         self.run = True
         self.level = 1
-        self.game_over = False
+        self.game_over_status = False
 
         # Load and store the background image as an instance variable
         self.background_image = PhotoImage(file="assets/img/background.png")
@@ -77,7 +77,7 @@ class Game:
         # Start the clock
         self.clock()
 
-    def boss_key(self):
+    def boss_key(self, event):
         # Minimize the window
         self.master.iconify()
 
@@ -119,7 +119,7 @@ class Game:
             self.game_over()
 
     def game_over(self):
-        self.game_over = True
+        self.game_over_status = True
         self.canvas.create_text(
             constants.GAME_WIDTH // 2,
             constants.GAME_HEIGHT // 2,
@@ -194,7 +194,7 @@ class SpaceFighter:
             image=self.space_fighter_sprites[self.current_sprite])
 
     # Define the update_sprite method to update the sprite of the space fighter
-    def update_sprite(self):
+    def update_sprite(self, event):
         # Check if the space fighter is in its main sprite
         if self.current_sprite == "main":
             # Change the sprite of the space fighter to super
@@ -215,26 +215,26 @@ class SpaceFighter:
         self.canvas.focus_set()
 
     # Define the move_left method to move the space fighter to the left
-    def move_left(self):
+    def move_left(self, event):
         # Check if the space fighter is not yet at the leftmost part of the canvas
         if self.x > self.width / 2 + 15:
             self.x -= self.speed
-            self.update_position()
+            self.update_position(event)
 
     # Define the move_right method to move the space fighter to the right
-    def move_right(self):
+    def move_right(self, event):
         # Check if the space fighter is not yet at the rightmost part of the canvas
         if self.x < constants.GAME_WIDTH - (self.width / 2 + 15):
             self.x += self.speed
-            self.update_position()
+            self.update_position(event)
 
     # Update the position of the space fighter on the canvas
-    def update_position(self):
+    def update_position(self, event):
         self.canvas.coords(self.space_fighter_image, self.x, self.y)
 
-    def shoot(self):
+    def shoot(self, event):
         # Create a laser at the current position of the space fighter
-        laser = Laser(self.canvas, self.x, self.y)
+        laser = Laser(self.canvas, self.x, self.y - 40)
         self.lasers.append(laser)
 
     def move_lasers(self):
@@ -316,7 +316,7 @@ class AlienShip:
 
     def shoot(self):
         # Create a laser at the current position of the alien ship
-        alien_laser = Laser(self.canvas, self.x, self.y, self.speed + 3, "down")
+        alien_laser = Laser(self.canvas, self.x, self.y + 40, self.speed + 3, "down", "alt")
         self.alien_lasers.append(alien_laser)
 
     def move_lasers(self):
@@ -326,18 +326,25 @@ class AlienShip:
 # Define the Laser class to represent the laser beam in the game
 class Laser:
     # Define the constructor method of the Laser class
-    def __init__(self, canvas, x, y, speed = 10, direction = "up"):
+    def __init__(self, canvas, x, y, speed = 10, direction = "up", sprite = "main"):
         self.canvas = canvas
         self.x = x
-        self.y = y - 40
+        self.y = y
 
         # Speed of the laser
         self.speed = speed
         self.direction = direction
 
-        self.laser_image = PhotoImage(file="assets/img/laser-beam.png")
+        # Load and store the laser image as an instance variable
+        self.laser_sprites = {
+            "main": PhotoImage(file="assets/img/laser-beam.png"),
+            "alt": PhotoImage(file="assets/img/laser-beam-alt.png")
+        }
         # Laser graphic made by me (Jean Paul Fernandez) using Adobe Photoshop [https://adobe.com/products/photoshop/].
 
+        self.current_sprite = sprite
+        self.laser_image = self.laser_sprites[sprite]
+        
         # Display the laser on the canvas and store it as an instance variable
         self.laser_beam = self.canvas.create_image(
             self.x,
