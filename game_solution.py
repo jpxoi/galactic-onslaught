@@ -3,6 +3,7 @@ import random
 import math
 import time
 import constants
+from leaderboard import LeaderboardManager
 
 class Game:
     """The Game class represents the game window and its contents."""
@@ -22,6 +23,7 @@ class Game:
         self.canvas.pack()
 
         # Define game variables
+        self.player_name = "TestPlayer"
         self.score = 0
         self.lives = 3
         self.paused = False
@@ -38,6 +40,8 @@ class Game:
         # Create two background images for seamless scrolling
         self.bg_image_1 = self.canvas.create_image(0, 0, anchor="nw", image=self.background_image)
         self.bg_image_2 = self.canvas.create_image(0, -constants.GAME_HEIGHT, anchor="nw", image=self.background_image)
+
+        self.leaderboard_manager = LeaderboardManager("leaderboard.txt")
 
         # Store Enemy objects in a list
         self.alien_ships = []
@@ -123,6 +127,119 @@ class Game:
             font=(constants.GAME_LARGE_FONT_BOLD),
             anchor="center",
             tag="game_over")
+
+        self.update_leaderboard()
+
+    def update_leaderboard(self):
+        # Check if the player exists in the leaderboard
+        leaderboard = self.leaderboard_manager.read_leaderboard()
+        player_exists = False
+
+        for entry in leaderboard:
+            if entry["playerName"] == self.player_name:
+                player_exists = True
+                if self.score > entry["score"]:
+                    self.leaderboard_manager.update_leaderboard({"playerName": self.player_name, "score": self.score})
+                    break
+                break
+        
+        if not player_exists:
+            new_leaderboard_entry = {"playerName": self.player_name, "score": self.score}
+            self.leaderboard_manager.append_leaderboard(new_leaderboard_entry)
+
+        # After updating the leaderboard, wait 3 seconds before printing it
+        self.canvas.after(3000, self.print_leaderboard)
+
+
+    def print_leaderboard(self):
+        # Clear the canvas, except for the background images
+        self.canvas.delete("score")
+        self.canvas.delete("lives")
+        self.canvas.delete("game_over")
+        self.space_fighter.remove_space_fighter()
+
+        # Read and sort the leaderboard
+        leaderboard = self.leaderboard_manager.read_leaderboard()
+        sorted_leaderboard = self.leaderboard_manager.sort_leaderboard(leaderboard)
+
+        # Print Leaderboard on a table
+        self.canvas.create_rectangle(
+            constants.GAME_WIDTH // 2 - 200,
+            constants.GAME_HEIGHT // 2 - 300,
+            constants.GAME_WIDTH // 2 + 200,
+            constants.GAME_HEIGHT // 2 + 300,
+            outline=constants.GAME_FONT_COLOR,
+            width=3,
+            tag="leaderboard-table",
+            dash=(5, 9)
+        )
+        
+        self.canvas.create_text(
+            constants.GAME_WIDTH // 2,
+            constants.GAME_HEIGHT // 2 - 350,
+            text="LEADERBOARD",
+            fill=constants.GAME_FONT_COLOR,
+            font=(constants.GAME_LARGE_FONT_BOLD),
+            anchor="center",
+            tag="leaderboard-title")
+        
+        self.canvas.create_text(
+            constants.GAME_WIDTH // 2 - 125,
+            constants.GAME_HEIGHT // 2 - 250,
+            text="Rank",
+            fill=constants.GAME_FONT_COLOR,
+            font=(constants.GAME_SMALL_FONT_BOLD),
+            anchor="center",
+            tag="leaderboard-rank")
+        
+        self.canvas.create_text(
+            constants.GAME_WIDTH // 2 - 50,
+            constants.GAME_HEIGHT // 2 - 250,
+            text="Name",
+            fill=constants.GAME_FONT_COLOR,
+            font=(constants.GAME_SMALL_FONT_BOLD),
+            anchor="w",
+            tag="leaderboard-name")
+        
+        self.canvas.create_text(
+            constants.GAME_WIDTH // 2 + 125,
+            constants.GAME_HEIGHT // 2 - 250,
+            text="Score",
+            fill=constants.GAME_FONT_COLOR,
+            font=(constants.GAME_SMALL_FONT_BOLD),
+            anchor="center",
+            tag="leaderboard-score")
+        
+        for i, entry in enumerate(sorted_leaderboard):
+            self.canvas.create_text(
+                constants.GAME_WIDTH // 2 - 125,
+                constants.GAME_HEIGHT // 2 - 200 + (i * 50),
+                text=f"{i + 1}",
+                fill=constants.GAME_FONT_COLOR,
+                font=(constants.GAME_SMALL_FONT),
+                anchor="center",
+                tag="leaderboard-entry-rank")
+            
+            self.canvas.create_text(
+                constants.GAME_WIDTH // 2 - 50,
+                constants.GAME_HEIGHT // 2 - 200 + (i * 50),
+                text=f"{entry['playerName']}",
+                fill=constants.GAME_FONT_COLOR,
+                font=(constants.GAME_SMALL_FONT),
+                anchor="w",
+                tag="leaderboard-entry-name")
+            
+            self.canvas.create_text(
+                constants.GAME_WIDTH // 2 + 125,
+                constants.GAME_HEIGHT // 2 - 200 + (i * 50),
+                text=f"{entry['score']}",
+                fill=constants.GAME_FONT_COLOR,
+                font=(constants.GAME_SMALL_FONT),
+                anchor="center",
+                tag="leaderboard-entry-score")
+        
+        # Create the restart label on the canvas
+        self.canvas.create_text(constants.GAME_WIDTH // 2, constants.GAME_HEIGHT - 100, text="Press R to restart", fill=constants.GAME_FONT_COLOR, font=(constants.GAME_SMALL_FONT), anchor="center", tag="restart")
 
     def level_up(self):
         self.level += 1
@@ -278,6 +395,9 @@ class SpaceFighter:
             if laser.off_screen(0):
                 self.lasers.remove(laser)
 
+    def remove_space_fighter(self):
+        self.canvas.delete(self.space_fighter_image)
+
 # Define the SlienShip class to represent the alien ship in the game
 class AlienShip:
     """The AlienShip class represents the alien ship in the game."""
@@ -309,7 +429,7 @@ class AlienShip:
 
         # Properties for shooting lasers
         self.alien_lasers = []
-        self.shoot_delay = 4000
+        self.shoot_delay = 5000
         self.last_shot_time = 0
 
     def create_alien_ship(self):
