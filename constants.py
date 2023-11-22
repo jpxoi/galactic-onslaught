@@ -1,3 +1,7 @@
+"""
+This module contains all the constants used in the game.
+"""
+
 GAME_TITLE = "Galactic Onslaught" # Game title
 GAME_WIDTH = 1440 # Game window width
 GAME_HEIGHT = 900 # Game window height
