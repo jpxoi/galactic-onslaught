@@ -1,14 +1,112 @@
-from tkinter import Tk, Canvas, PhotoImage
+from tkinter import Tk, Canvas, PhotoImage, Entry, Button, StringVar, Radiobutton
 import random
 import math
 import time
 import constants
 from leaderboard import LeaderboardManager
 
+class StartMenu:
+    """The StartMenu class represents the start menu of the game."""
+    def __init__(self, master, start_game_callback):
+        self.master = master
+        self.master.title(constants.GAME_TITLE)
+        self.master.geometry(f"{constants.GAME_WIDTH}x{constants.GAME_HEIGHT}+0+0")
+        self.start_game_callback = start_game_callback
+
+        # Default playing keys
+        self.playing_keys = StringVar(value="arrows")
+
+        # Create the start menu canvas
+        self.start_menu_canvas = Canvas(master, bg="black", width=constants.GAME_WIDTH, height=constants.GAME_HEIGHT)
+        self.start_menu_canvas.pack()
+
+        # Load and store the playing keys images as instance variables
+        self.keys_image = PhotoImage(file="")
+        self.keys_sel_image = PhotoImage(file="")
+        # Playing keys images made by Yuliia Duliakova, retrieved from Canva's free media library [https://www.canva.com/features/free-stock-photos/].
+        self.button_image = PhotoImage(file="")
+
+        # Load and store the background image for the start menu
+        self.background_image = PhotoImage(file="assets/img/background.png")
+        # Background graphic made by me (Jean Paul Fernandez) using Canva's image editor [https://www.canva.com].
+        # Additional graphic "Space with small elements. Minimal starry night sky background. Few stars space background." by Rostik Solonenko on Canva's free media library [https://www.canva.com/features/free-stock-photos/].
+        # Editable file available as view-only at https://www.canva.com/design/DAF0EFDjc3g/cApy-RMGI9pTI6kQi9Xrmg/edit.
+
+        # Ensure the background image covers the entire canvas
+        self.bg_image = self.start_menu_canvas.create_image(constants.GAME_WIDTH // 2, constants.GAME_HEIGHT // 2, anchor="center", image=self.background_image)
+
+        # Calculate the center of the canvas
+        center_x = constants.GAME_WIDTH // 2
+        center_y = constants.GAME_HEIGHT // 2
+
+        # Create start menu elements using create_text
+        self.create_text(center_x, center_y - 350, constants.GAME_TITLE, constants.GAME_LARGE_FONT_BOLD, constants.GAME_FONT_COLOR)
+        self.create_input_field(center_x, center_y - 280, "Enter your player name:", constants.GAME_SMALL_FONT, constants.GAME_FONT_COLOR)
+
+        self.create_button(center_x - 300, center_y - 175, "Resume Game", self.start_game, "w", "resume-button")
+        self.create_button(center_x + 30, center_y - 175, "New Game", self.start_game, "center", "new-game-button")
+        self.create_button(center_x + 300, center_y - 175, "Quit", self.master.destroy, "e", "quit-button")
+        self.create_text(center_x, center_y - 75, "Choose Space Fighter Controls:", constants.GAME_SMALL_FONT, constants.GAME_FONT_COLOR)
+        self.create_radio_button(center_x - 100, center_y + 25, "Arrow Keys", "arrows", "arrow-keys")
+        self.create_radio_button(center_x + 100, center_y + 25, "WASD Keys", "wasd", "wasd-keys")
+        self.create_text(center_x, center_y + 150, "Game Controls:", constants.GAME_MEDIUM_FONT_BOLD, constants.GAME_FONT_COLOR)
+        self.create_text(center_x, center_y + 200, "Press Spacebar to shoot", constants.GAME_SMALL_FONT, constants.GAME_FONT_COLOR)
+        self.create_text(center_x, center_y + 250, "Press B to minimize the game", constants.GAME_SMALL_FONT, constants.GAME_FONT_COLOR)
+        # Game Credits
+        self.create_text(center_x, center_y + 350, "Game developed by Jean Paul Fernandez", constants.GAME_SMALLEST_FONT, constants.GAME_FONT_COLOR)
+
+
+        # Set focus to the canvas
+        self.start_menu_canvas.focus_set()
+
+    def create_text(self, x, y, text, font, color):
+        self.start_menu_canvas.create_text(x, y, text=text, font=font, fill=color, anchor="center")
+
+    def create_button(self, x, y, text, command, anchor="center", image=""):
+        self.button_image = PhotoImage(file=f"assets/img/{image}.png")
+
+        button = Button(self.start_menu_canvas, text=text, command=command, font=(constants.GAME_SMALL_FONT), bg="white", fg="black", activebackground="white", activeforeground="black", relief="flat", highlightthickness = 0, bd = 0, image=self.button_image)
+
+        button.image = self.button_image  # Retain a reference
+        self.start_menu_canvas.create_window(x, y, window=button, anchor=anchor)
+
+    def create_radio_button(self, x, y, text, value, image):
+        self.keys_image = PhotoImage(file=f"assets/img/{image}.png")
+        self.keys_sel_image = PhotoImage(file=f"assets/img/{image}-sel.png")
+
+        radiobutton = Radiobutton(self.start_menu_canvas, text=text, variable=self.playing_keys, value=value, font=(constants.GAME_SMALL_FONT), fg=constants.GAME_FONT_COLOR, indicatoron=0, relief="flat", bd=0, image=self.keys_image, selectimage=self.keys_sel_image)
+        
+        radiobutton.image = self.keys_image  # Retain a reference
+        radiobutton.selectimage = self.keys_sel_image  # Retain a reference
+
+        self.start_menu_canvas.create_window(x, y, window=radiobutton, anchor="center")
+
+    def create_input_field(self, x, y, text, font, color):
+        self.start_menu_canvas.create_text(x, y, text=text, font=font, fill=color, anchor="center")
+
+        self.input_var = StringVar()  # Create a StringVar variable
+        self.input_field = Entry(self.start_menu_canvas, textvariable=self.input_var, font=(constants.GAME_SMALL_FONT), bg="#171717", fg="#FFF", highlightcolor="#FFF", highlightthickness=1, bd=0)
+
+        self.start_menu_canvas.create_window(x, y + 40, window=self.input_field, anchor="center")
+
+    def start_game(self):
+        # Remove start menu elements
+        self.start_menu_canvas.destroy()
+
+        # Retrieve the chosen playing keys
+        chosen_keys = self.playing_keys.get()
+
+        # Retrieve the player name and remove spaces
+        player_name = self.input_var.get()
+        player_name = player_name.replace(" ", "")
+
+        # Start the game
+        self.start_game_callback(chosen_keys, player_name)
+
 class Game:
     """The Game class represents the game window and its contents."""
     # Define the constructor method of the Game class
-    def __init__(self, master):
+    def __init__(self, master, playing_keys, player_name="Player01"):
         # Store the root window as an instance variable
         self.master = master
         self.master.title(constants.GAME_TITLE)
@@ -23,7 +121,7 @@ class Game:
         self.canvas.pack()
 
         # Define game variables
-        self.player_name = "TestPlayer"
+        self.player_name = player_name
         self.score = 0
         self.lives = 3
         self.paused = False
@@ -34,7 +132,7 @@ class Game:
         # Load and store the background image as an instance variable
         self.background_image = PhotoImage(file="assets/img/background.png")
         # Background graphic made by me (Jean Paul Fernandez) using Canva's image editor [https://www.canva.com].
-        # Additional graphic "Space with small elements. Minimal starry night sky background. Few stars space background." by Rostik Solonenko on Canva's free media library [https://www.canva.com/features/free-stock-photos/].
+        # Additional graphics made by Rostik Solonenko, retrieved from Canva's free media library [https://www.canva.com/features/free-stock-photos/].
         # Editable file available as view-only at https://www.canva.com/design/DAF0EFDjc3g/cApy-RMGI9pTI6kQi9Xrmg/edit.
 
         # Create two background images for seamless scrolling
@@ -53,7 +151,7 @@ class Game:
             self.alien_ship = AlienShip(self.canvas, self.alien_ship_speed)
 
         # Create the space fighter
-        self.space_fighter = SpaceFighter(self.canvas)
+        self.space_fighter = SpaceFighter(self.canvas, playing_keys)
 
         # Create the score label on the canvas
         self.score_label = self.canvas.create_text(
@@ -238,8 +336,12 @@ class Game:
                 anchor="center",
                 tag="leaderboard-entry-score")
         
-        # Create the restart label on the canvas
-        self.canvas.create_text(constants.GAME_WIDTH // 2, constants.GAME_HEIGHT - 100, text="Press R to restart", fill=constants.GAME_FONT_COLOR, font=(constants.GAME_SMALL_FONT), anchor="center", tag="restart")
+        # Create the return to Meny label on the canvas
+        self.canvas.create_text(constants.GAME_WIDTH // 2, constants.GAME_HEIGHT - 100, text="Press R to return to Menu or Q to quit", fill=constants.GAME_FONT_COLOR, font=(constants.GAME_SMALL_FONT), anchor="center", tag="return_to_menu")
+
+        # Bind the key events to the corresponding methods
+        self.canvas.bind("<Q>", self.master.destroy)
+        self.canvas.bind("<q>", self.master.destroy)
 
     def level_up(self):
         self.level += 1
@@ -287,7 +389,7 @@ class Game:
 class SpaceFighter:
     """The SpaceFighter class represents the space fighter in the game."""
     # Define the constructor method of the SpaceFighter class
-    def __init__(self, canvas):
+    def __init__(self, canvas, playing_keys):
         self.canvas = canvas
         self.x = constants.GAME_WIDTH // 2
         self.y = constants.GAME_HEIGHT - 90
@@ -316,11 +418,26 @@ class SpaceFighter:
         self.lasers = []
 
         # Bind the key events to the corresponding methods
+        if playing_keys == "arrows":
+            self.canvas.bind("<Left>", self.move_left)
+            self.canvas.bind("<Right>", self.move_right)
+            self.canvas.bind("<Up>", self.move_up)
+            self.canvas.bind("<Down>", self.move_down)
+
+        elif playing_keys == "wasd":
+            # Uppercase
+            self.canvas.bind("<A>", self.move_left)
+            self.canvas.bind("<D>", self.move_right)
+            self.canvas.bind("<W>", self.move_up)
+            self.canvas.bind("<S>", self.move_down)
+
+            # Lowercase
+            self.canvas.bind("<a>", self.move_left)
+            self.canvas.bind("<d>", self.move_right)
+            self.canvas.bind("<w>", self.move_up)
+            self.canvas.bind("<s>", self.move_down)
+
         self.canvas.bind("<F>", self.update_sprite)
-        self.canvas.bind("<Left>", self.move_left)
-        self.canvas.bind("<Right>", self.move_right)
-        self.canvas.bind("<Up>", self.move_up)
-        self.canvas.bind("<Down>", self.move_down)
         self.canvas.bind("<space>", self.shoot)
 
     def create_space_fighter(self):
@@ -463,7 +580,7 @@ class AlienShip:
         # Check if it's time for the alien to shoot
         current_time = time.time() * 1000  # Convert to milliseconds
 
-        if current_time - self.last_shot_time > self.shoot_delay:
+        if current_time - self.last_shot_time > self.shoot_delay and self.y > 0:
             self.shoot()
             self.last_shot_time = current_time
 
@@ -554,7 +671,12 @@ class Laser:
         elif self.direction == "down":
             return self.y >= height
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
+    def start_game(playing_keys, player_name):
+        global game
+        root.title(constants.GAME_TITLE)
+        game = Game(root, playing_keys, player_name)
+    
     root = Tk()
-    game = Game(root)
+    start_menu = StartMenu(root, start_game)
     root.mainloop()
