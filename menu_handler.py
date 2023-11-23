@@ -16,7 +16,7 @@ class StartMenu:
 
         # Set the title and geometry of the root window
         self.master.title(constants.GAME_TITLE)
-        self.master.geometry(f"{constants.GAME_WIDTH}x{constants.GAME_HEIGHT}+0+0")
+        self.create_window()
         self.start_game_callback = start_game_callback
 
         # Calculate the center of the canvas and store it as instance variables
@@ -147,9 +147,21 @@ class StartMenu:
             constants.GAME_SMALLEST_FONT,
             constants.GAME_FONT_COLOR)
 
-
         # Set focus to the canvas
         self.start_menu_canvas.focus_set()
+
+    def create_window(self):
+        """Create the window for the game."""
+        # Get the screen width and height
+        screen_width = self.master.winfo_screenwidth()
+        screen_height = self.master.winfo_screenheight()
+
+        # Calculate the x and y coordinates for the Tkinter window
+        x = (screen_width - constants.GAME_WIDTH) // 2
+        y = (screen_height - constants.GAME_HEIGHT) // 2
+
+        # Set the window's position
+        self.master.geometry(f"{constants.GAME_WIDTH}x{constants.GAME_HEIGHT}+{x}+{y}")
 
     def create_text(self, x, y, text, font, color):
         """Create a text on the canvas."""

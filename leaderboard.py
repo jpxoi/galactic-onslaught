@@ -18,7 +18,10 @@ Methods:
                             representing entries.
 - sort_leaderboard(self, leaderboard): Sorts the given leaderboard by score in descending
                                         order and keeps only the top 10 entries.
+- print_leaderboard(self, canvas, sorted_leaderboard, player_name): Prints the leaderboard
 """
+
+import constants
 
 class LeaderboardManager:
     """
@@ -69,3 +72,92 @@ class LeaderboardManager:
         # Keep only the top 10 entries
         leaderboard = leaderboard[:10]
         return leaderboard
+
+    def print_leaderboard(self, canvas, sorted_leaderboard, player_name):
+        """Print the leaderboard to the screen"""
+
+        # Print Leaderboard on a table
+        canvas.create_rectangle(
+            constants.GAME_WIDTH // 2 - 200,
+            constants.GAME_HEIGHT // 2 - 300,
+            constants.GAME_WIDTH // 2 + 200,
+            constants.GAME_HEIGHT // 2 + 300,
+            outline=constants.GAME_FONT_COLOR,
+            width=3,
+            tag="leaderboard-table",
+            dash=(5, 9)
+        )
+
+        # Create the leaderboard title on the canvas
+        canvas.create_text(
+            constants.GAME_WIDTH // 2,
+            constants.GAME_HEIGHT // 2 - 350,
+            text="LEADERBOARD",
+            fill=constants.GAME_FONT_COLOR,
+            font=(constants.GAME_LARGE_FONT_BOLD),
+            anchor="center",
+            tag="leaderboard-title")
+
+        # Create the leaderboard table headers on the canvas
+        canvas.create_text(
+            constants.GAME_WIDTH // 2 - 125,
+            constants.GAME_HEIGHT // 2 - 250,
+            text="Rank",
+            fill=constants.GAME_FONT_COLOR,
+            font=(constants.GAME_SMALL_FONT_BOLD),
+            anchor="center",
+            tag="leaderboard-rank")
+
+        canvas.create_text(
+            constants.GAME_WIDTH // 2 - 50,
+            constants.GAME_HEIGHT // 2 - 250,
+            text="Name",
+            fill=constants.GAME_FONT_COLOR,
+            font=(constants.GAME_SMALL_FONT_BOLD),
+            anchor="w",
+            tag="leaderboard-name")
+
+        canvas.create_text(
+            constants.GAME_WIDTH // 2 + 125,
+            constants.GAME_HEIGHT // 2 - 250,
+            text="Score",
+            fill=constants.GAME_FONT_COLOR,
+            font=(constants.GAME_SMALL_FONT_BOLD),
+            anchor="center",
+            tag="leaderboard-score")
+
+        # Create the leaderboard entries on the canvas
+        for i, entry in enumerate(sorted_leaderboard):
+            if entry["playerName"] == player_name:
+                font_size = constants.GAME_SMALL_FONT_BOLD
+                font_color = constants.GAME_FONT_COLOR_SUCCESS
+            else:
+                font_size = constants.GAME_SMALL_FONT
+                font_color = constants.GAME_FONT_COLOR
+
+            canvas.create_text(
+                constants.GAME_WIDTH // 2 - 125,
+                constants.GAME_HEIGHT // 2 - 200 + (i * 50),
+                text=f"{i + 1}",
+                fill=font_color,
+                font=(font_size),
+                anchor="center",
+                tag="leaderboard-entry-rank")
+
+            canvas.create_text(
+                constants.GAME_WIDTH // 2 - 50,
+                constants.GAME_HEIGHT // 2 - 200 + (i * 50),
+                text=f"{entry['playerName']}",
+                fill=font_color,
+                font=(font_size),
+                anchor="w",
+                tag="leaderboard-entry-name")
+
+            canvas.create_text(
+                constants.GAME_WIDTH // 2 + 125,
+                constants.GAME_HEIGHT // 2 - 200 + (i * 50),
+                text=f"{entry['score']}",
+                fill=font_color,
+                font=(font_size),
+                anchor="center",
+                tag="leaderboard-entry-score")

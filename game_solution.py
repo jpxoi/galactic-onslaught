@@ -47,7 +47,8 @@ class Game:
 
         # Set the title and geometry of the root window
         self.master.title(constants.GAME_TITLE)
-        self.master.geometry(f"{constants.GAME_WIDTH}x{constants.GAME_HEIGHT}+0+0")
+
+        self.create_window()
 
         # Create and pack the canvas widget and pack it to the root window
         self.canvas = Canvas(
@@ -128,7 +129,20 @@ class Game:
         # Start the clock
         self.clock()
 
-    def boss_key(self, event):
+    def create_window(self):
+        """Create the game window."""
+        # Get the screen width and height
+        screen_width = self.master.winfo_screenwidth()
+        screen_height = self.master.winfo_screenheight()
+
+        # Calculate the x and y coordinates for the Tkinter window
+        x = (screen_width - constants.GAME_WIDTH) // 2
+        y = (screen_height - constants.GAME_HEIGHT) // 2
+
+        # Set the window's position
+        self.master.geometry(f"{constants.GAME_WIDTH}x{constants.GAME_HEIGHT}+{x}+{y}")
+
+    def boss_key(self, _):
         """The boss_key method minimizes the game window."""
         self.master.iconify() # Minimize the game window
 
@@ -349,91 +363,7 @@ class Game:
         leaderboard = self.leaderboard_manager.read_leaderboard()
         sorted_leaderboard = self.leaderboard_manager.sort_leaderboard(leaderboard)
 
-        # Print Leaderboard on a table
-        self.canvas.create_rectangle(
-            constants.GAME_WIDTH // 2 - 200,
-            constants.GAME_HEIGHT // 2 - 300,
-            constants.GAME_WIDTH // 2 + 200,
-            constants.GAME_HEIGHT // 2 + 300,
-            outline=constants.GAME_FONT_COLOR,
-            width=3,
-            tag="leaderboard-table",
-            dash=(5, 9)
-        )
-
-        # Create the leaderboard title on the canvas
-        self.canvas.create_text(
-            constants.GAME_WIDTH // 2,
-            constants.GAME_HEIGHT // 2 - 350,
-            text="LEADERBOARD",
-            fill=constants.GAME_FONT_COLOR,
-            font=(constants.GAME_LARGE_FONT_BOLD),
-            anchor="center",
-            tag="leaderboard-title")
-
-        # Create the leaderboard table headers on the canvas
-        self.canvas.create_text(
-            constants.GAME_WIDTH // 2 - 125,
-            constants.GAME_HEIGHT // 2 - 250,
-            text="Rank",
-            fill=constants.GAME_FONT_COLOR,
-            font=(constants.GAME_SMALL_FONT_BOLD),
-            anchor="center",
-            tag="leaderboard-rank")
-
-        self.canvas.create_text(
-            constants.GAME_WIDTH // 2 - 50,
-            constants.GAME_HEIGHT // 2 - 250,
-            text="Name",
-            fill=constants.GAME_FONT_COLOR,
-            font=(constants.GAME_SMALL_FONT_BOLD),
-            anchor="w",
-            tag="leaderboard-name")
-
-        self.canvas.create_text(
-            constants.GAME_WIDTH // 2 + 125,
-            constants.GAME_HEIGHT // 2 - 250,
-            text="Score",
-            fill=constants.GAME_FONT_COLOR,
-            font=(constants.GAME_SMALL_FONT_BOLD),
-            anchor="center",
-            tag="leaderboard-score")
-
-        # Create the leaderboard entries on the canvas
-        for i, entry in enumerate(sorted_leaderboard):
-            if entry["playerName"] == self.player_name:
-                font_size = constants.GAME_SMALL_FONT_BOLD
-                font_color = constants.GAME_FONT_COLOR_SUCCESS
-            else:
-                font_size = constants.GAME_SMALL_FONT
-                font_color = constants.GAME_FONT_COLOR
-
-            self.canvas.create_text(
-                constants.GAME_WIDTH // 2 - 125,
-                constants.GAME_HEIGHT // 2 - 200 + (i * 50),
-                text=f"{i + 1}",
-                fill=font_color,
-                font=(font_size),
-                anchor="center",
-                tag="leaderboard-entry-rank")
-
-            self.canvas.create_text(
-                constants.GAME_WIDTH // 2 - 50,
-                constants.GAME_HEIGHT // 2 - 200 + (i * 50),
-                text=f"{entry['playerName']}",
-                fill=font_color,
-                font=(font_size),
-                anchor="w",
-                tag="leaderboard-entry-name")
-
-            self.canvas.create_text(
-                constants.GAME_WIDTH // 2 + 125,
-                constants.GAME_HEIGHT // 2 - 200 + (i * 50),
-                text=f"{entry['score']}",
-                fill=font_color,
-                font=(font_size),
-                anchor="center",
-                tag="leaderboard-entry-score")
+        self.leaderboard_manager.print_leaderboard(self.canvas, sorted_leaderboard, self.player_name)
 
         # Create the return to Menu label on the canvas
         self.canvas.create_text(
@@ -568,7 +498,7 @@ class SpaceFighter:
             anchor="center",
             image=self.space_fighter_sprites[self.current_sprite])
 
-    def update_sprite(self, event):
+    def update_sprite(self, _):
         """The update_sprite method updates the sprite of the space fighter."""
 
         # Check if the space fighter is in its main sprite
@@ -623,11 +553,11 @@ class SpaceFighter:
             self.y += self.speed
             self.update_position(event)
 
-    def update_position(self, event):
+    def update_position(self, _):
         """The update_position method updates the position of the space fighter on the canvas."""
         self.canvas.coords(self.space_fighter_image, self.x, self.y)
 
-    def shoot(self, event):
+    def shoot(self, _):
         """The shoot method shoots a laser from the space fighter."""
 
         # Create a laser at the current position of the space fighter
