@@ -72,8 +72,9 @@ class Game:
         self.alien_ship_speed = 0
 
         # Create the alien ship
-        for self.alien_ship in self.alien_ships:
-            self.alien_ship = AlienShip(self.canvas, self.alien_ship_speed)
+        if len(self.alien_ships) >= 0:
+            for self.alien_ship in self.alien_ships:
+                self.alien_ship = AlienShip(self.canvas, self.alien_ship_speed)
 
         # Create the space fighter
         self.space_fighter = SpaceFighter(self.canvas, playing_keys)
@@ -97,7 +98,7 @@ class Game:
             anchor="e",
             tag="score")
 
-        # Create the lives label on the canvas and draw the lives
+        # Create the lives label on the canvas
         self.lives_label = self.canvas.create_text(
             constants.GAME_WIDTH - 20,
             70,
@@ -107,6 +108,7 @@ class Game:
             anchor="e",
             tag="lives")
 
+        # Draw the lives bar on the canvas
         self.draw_lives_bar()
 
         # Create a leaderboard manager
@@ -118,15 +120,26 @@ class Game:
         self.canvas.bind("<P>", self.pause_resume_game)
         self.canvas.bind("<p>", self.pause_resume_game)
 
-        # If a saved game exists, load it
-        if status == "load":
-            self.load_game()
-
         # Set focus to the canvas
         self.canvas.focus_set()
 
         # Start the clock
         self.clock()
+
+    def clock(self):
+        """The clock method updates the game every frame."""
+        # Check if the game is not yet over or paused
+        if not self.game_over_status:
+            self.scroll_speed = self.alien_ship_speed // 2
+            self.update_screen()
+
+            # Check if the player has destroyed an alien ship
+            if len(self.alien_ships) == 0:
+                self.level_up()
+
+            self.check_collisions()
+
+        self.master.after(1000 // constants.GAME_SPEED, self.clock)
 
     def create_window(self):
         """Create the game window."""
@@ -144,21 +157,6 @@ class Game:
     def boss_key(self, _):
         """The boss_key method minimizes the game window."""
         self.master.iconify() # Minimize the game window
-
-    def clock(self):
-        """The clock method updates the game every frame."""
-        # Check if the game is not yet over or paused
-        if not self.game_over_status:
-            self.scroll_speed = self.alien_ship_speed // 2
-            self.update_screen()
-
-            # Check if the player has destroyed an alien ship
-            if len(self.alien_ships) == 0:
-                self.level_up()
-
-            self.check_collisions()
-
-        self.master.after(1000 // constants.GAME_SPEED, self.clock)
 
     def pause_resume_game(self, _):
         """The pause_resume_game method pauses or resumes the game."""
@@ -574,6 +572,8 @@ class SpaceFighter:
 
     def create_space_fighter(self):
         """The create_space_fighter method creates the space fighter on the canvas."""
+
+        # Display the space fighter on the canvas and store it as an instance variable
         self.space_fighter_image = self.canvas.create_image(
             self.x,
             self.y,
@@ -718,6 +718,7 @@ class AlienShip:
         self.x = 0
         self.y = 0
 
+        # Load and store the alien ship sprites as a dictionary
         self.alien_ship_sprites = {
             "main": PhotoImage(file="assets/img/chr/alien-ship-main.png"),
             "destroyed": PhotoImage(file="assets/img/chr/alien-ship-destroyed.png"),
@@ -739,8 +740,10 @@ class AlienShip:
         # Create the alien ship
         self.create_alien_ship()
 
-        # Properties for shooting lasers
+        # Create a list to store the lasers
         self.alien_lasers = []
+
+        # Set the shoot delay and last shot time
         self.shoot_delay = 5000
         self.last_shot_time = 0
 
@@ -877,10 +880,10 @@ class Laser:
             anchor="center",
             image=self.laser_image)
 
-    # Define the move method to move the laser upwards
     def move(self):
         """The move method moves the laser beam upwards or downwards."""
 
+        # Move the laser beam upwards or downwards according to its direction
         if self.direction == "up":
             self.y -= self.speed
         elif self.direction == "down":
@@ -891,12 +894,14 @@ class Laser:
 
     def off_screen(self, height):
         """The off_screen method checks if the laser is off the screen."""
+        # Check if the laser is off the screen according to its direction
         if self.direction == "up":
             return self.y <= height
 
         if self.direction == "down":
             return self.y >= height
 
+        # If the direction is not up or down, return False
         return None
 
 if __name__ == "__main__":
