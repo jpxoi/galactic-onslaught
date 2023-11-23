@@ -70,7 +70,7 @@ class Game:
         self.game_over_status = False
 
         # Load and store the background image as an instance variable
-        self.background_image = PhotoImage(file="assets/img/background.png")
+        self.background_image = PhotoImage(file="assets/img/bg/background.png")
         # Background graphic made by me (Jean Paul Fernandez) using Canva's image editor [https://www.canva.com].
         # Additional graphics made by Rostik Solonenko, retrieved from Canva's free media library [https://www.canva.com/features/free-stock-photos/].
         # Editable file available as view-only at https://www.canva.com/design/DAF0EFDjc3g/cApy-RMGI9pTI6kQi9Xrmg/edit.
@@ -455,11 +455,11 @@ class SpaceFighter:
 
         # Load and store the space fighter sprites as a dictionary
         self.space_fighter_sprites = {
-            "main": PhotoImage(file="assets/img/space-fighter-main.png"),
-            "super": PhotoImage(file="assets/img/space-fighter-super.png"),
-            "shot": PhotoImage(file="assets/img/space-fighter-shot.png"),
-            "destroyed": PhotoImage(file="assets/img/space-fighter-destroyed.png"),
-            "explosion": PhotoImage(file="assets/img/space-fighter-explosion.png")
+            "main": PhotoImage(file="assets/img/chr/space-fighter-main.png"),
+            "super": PhotoImage(file="assets/img/chr/space-fighter-super.png"),
+            "shot": PhotoImage(file="assets/img/chr/space-fighter-shot.png"),
+            "destroyed": PhotoImage(file="assets/img/chr/space-fighter-destroyed.png"),
+            "explosion": PhotoImage(file="assets/img/chr/space-fighter-explosion.png")
             # Sprites generated using Canva's AI image generator Magic Media [https://www.canva.com/ai-image-generator/]
             # Input prompt "3D 4K Animated and Futuristic Space Fighter. 2D view from the top of it. Place it on a black background."
             # Background removed using Canva's Magic Studio [https://www.canva.com/magic/].
@@ -649,9 +649,9 @@ class AlienShip:
         self.y = 0
 
         self.alien_ship_sprites = {
-            "main": PhotoImage(file="assets/img/alien-ship-main.png"),
-            "destroyed": PhotoImage(file="assets/img/alien-ship-destroyed.png"),
-            "explosion": PhotoImage(file="assets/img/alien-ship-explosion.png")
+            "main": PhotoImage(file="assets/img/chr/alien-ship-main.png"),
+            "destroyed": PhotoImage(file="assets/img/chr/alien-ship-destroyed.png"),
+            "explosion": PhotoImage(file="assets/img/chr/alien-ship-explosion.png")
             # Sprites generated using Canva's AI image generator Magic Media [https://www.canva.com/ai-image-generator/]
             # Input prompt "3D Cartoon 4K Animated and Futuristic Alien UFO. 2D view from the top of it. Place it on a black background."
             # Background removed using Canva's Magic Studio [https://www.canva.com/magic/].
@@ -791,8 +791,8 @@ class Laser:
 
         # Load and store the laser image as an instance variable
         self.laser_sprites = {
-            "main": PhotoImage(file="assets/img/laser-beam.png"),
-            "alt": PhotoImage(file="assets/img/laser-beam-alt.png")
+            "main": PhotoImage(file="assets/img/clt/laser-beam.png"),
+            "alt": PhotoImage(file="assets/img/clt/laser-beam-alt.png")
         }
         # Laser graphic made by me (Jean Paul Fernandez) using Adobe Photoshop [https://adobe.com/products/photoshop/].
 

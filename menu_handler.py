@@ -43,7 +43,7 @@ class StartMenu:
         self.button_image = PhotoImage(file="")
 
         # Load and store the background image for the start menu
-        self.background_image = PhotoImage(file="assets/img/background.png")
+        self.background_image = PhotoImage(file="assets/img/bg/background.png")
         # Background graphic made by me (Jean Paul Fernandez) using Canva's image editor [https://www.canva.com].
         # Additional graphics made by Rostik Solonenko, retrieved from Canva's free media library [https://www.canva.com/features/free-stock-photos/].
         # Editable file available as view-only at https://www.canva.com/design/DAF0EFDjc3g/cApy-RMGI9pTI6kQi9Xrmg/edit.
@@ -177,7 +177,7 @@ class StartMenu:
 
     def create_button(self, x, y, text, command, anchor="center", image=""):
         """Create a button on the canvas."""
-        self.button_image = PhotoImage(file=f"assets/img/{image}.png")
+        self.button_image = PhotoImage(file=f"assets/img/btn/{image}.png")
 
         button = Button(
             self.start_menu_canvas,
@@ -198,8 +198,8 @@ class StartMenu:
 
     def create_radio_button(self, x, y, text, value, image):
         """Create a radio button on the canvas."""
-        self.keys_image = PhotoImage(file=f"assets/img/{image}.png")
-        self.keys_sel_image = PhotoImage(file=f"assets/img/{image}-sel.png")
+        self.keys_image = PhotoImage(file=f"assets/img/btn/{image}.png")
+        self.keys_sel_image = PhotoImage(file=f"assets/img/btn/{image}-sel.png")
 
         radiobutton = Radiobutton(
             self.start_menu_canvas,
