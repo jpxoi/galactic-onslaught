@@ -7,6 +7,9 @@ GAME_WIDTH = 1440 # Game window width
 GAME_HEIGHT = 900 # Game window height
 GAME_SPEED = 60 # Game speed (FPS)
 
+PLAYER_NAME_MAX_LENGTH = 10 # Maximum length of the player's name
+PLAYER_NAME_MIN_LENGTH = 3 # Minimum length of the player's name
+
 # Define font properties
 GAME_FONT_FAMILY = "Trebuchet MS"
 GAME_FONT_SIZE = (18, 24, 32, 48)

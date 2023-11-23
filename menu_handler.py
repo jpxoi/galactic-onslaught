@@ -75,7 +75,7 @@ class StartMenu:
             center_x - 300,
             center_y - 175,
             "Resume Game",
-            self.start_game,
+            self.load_game,
             "w",
             "resume-button")
 
@@ -247,21 +247,45 @@ class StartMenu:
 
         self.start_menu_canvas.create_window(x, y + 40, window=self.input_field, anchor="center")
 
-    def start_game(self):
+    def load_game(self):
+        self.start_game(True)
+
+    def start_game(self, load_game=False):
         """Start the game."""
         # Remove start menu elements
         self.start_menu_canvas.destroy()
 
+        if load_game:
+            # Retrieve the chosen playing keys
+            chosen_keys = self.playing_keys.get()
+            player_name = ""
+            # Load the game
+            self.start_game_callback(chosen_keys, player_name, "load")
+            return
+
         # Retrieve the chosen playing keys
         chosen_keys = self.playing_keys.get()
 
-        # Retrieve the player name and remove spaces
+        # Retrieve the player name
         player_name = self.input_var.get()
 
+        # Validate the player name and set it to a default value if invalid
         if player_name == "":
             player_name = "Player01"
+
+        # Remove leading, middle and trailing whitespaces
         else:
+            player_name = player_name.capitalize()
             player_name = player_name.replace(" ", "")
+
+            # Add leading zeroes if the player name is less than the minimum length
+            if len(player_name) < constants.PLAYER_NAME_MIN_LENGTH:
+                player_name = player_name + "0" * (
+                    constants.PLAYER_NAME_MIN_LENGTH - len(player_name))
+
+            # Truncate the player name if it exceeds the maximum length
+            elif len(player_name) > constants.PLAYER_NAME_MAX_LENGTH:
+                player_name = player_name[:constants.PLAYER_NAME_MAX_LENGTH]
 
         # Start the game
         self.start_game_callback(chosen_keys, player_name)

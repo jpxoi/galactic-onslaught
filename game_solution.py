@@ -1,30 +1,5 @@
 """
-Galactic Onslaught is a 2D space shooter game inspired by the classic arcade game Space Invaders.
-The player controls a space fighter and must destroy waves of alien ships.
-The player wins the game by destroying all the alien ships.
-The player loses the game if the player runs out of lives.
-
-Author: Jean Paul Fernandez
-Date: 2023-11-24
-
-This game contains the following classes:
-    - Game: The Game class represents the game window and its contents.
-    - SpaceFighter: The SpaceFighter class represents the space fighter in the game.
-    - AlienShip: The AlienShip class represents the alien ship in the game.
-    - Laser: The Laser class represents the laser beams in the game.
-
-This game contains the following functions:
-    - start_game: The start_game function that starts a the game.
-    - main: The main function that starts the game.
-
-This game imports the following modules:
-    - tkinter: The tkinter module is used to create the GUI.
-    - random: The random module is used to generate random numbers.
-    - math: The math module is used to perform mathematical operations.
-    - time: The time module is used to get the current time.
-    - constants: The constants module contains the constants used in the game.
-    - leaderboard: The leaderboard module contains the LeaderboardManager class.
-    - menu_handler: The menu_handler module contains the StartMenu class.
+Generate new docstring
 """
 
 from tkinter import Tk, Canvas, PhotoImage
@@ -33,6 +8,7 @@ import sys
 import random
 import math
 import time
+import pickle
 import constants
 from leaderboard import LeaderboardManager
 from menu_handler import StartMenu
@@ -43,7 +19,7 @@ class Game:
     It manages the game loop and the game elements.
     The game loop updates the game every frame.
     """
-    def __init__(self, master, playing_keys, player_name):
+    def __init__(self, master, playing_keys, player_name, status):
         # Store the root window as an instance variable
         self.master = master
 
@@ -69,6 +45,7 @@ class Game:
         self.level = 0
         self.game_over_status = False
         self.scroll_speed = 0
+        self.playing_keys = playing_keys
 
         # Load and store the background image as an instance variable
         self.background_image = PhotoImage(file="assets/img/bg/background.png")
@@ -101,6 +78,16 @@ class Game:
         # Create the space fighter
         self.space_fighter = SpaceFighter(self.canvas, playing_keys)
 
+        # Create the player name label on the canvas
+        self.canvas.create_text(
+            20,
+            30,
+            text=f"Player: {self.player_name}",
+            fill=constants.GAME_FONT_COLOR,
+            font=(constants.GAME_SMALL_FONT),
+            anchor="w",
+            tag="player_name")
+
         # Create the score label on the canvas
         self.score_label = self.canvas.create_text(
             constants.GAME_WIDTH - 20, 30,
@@ -110,14 +97,17 @@ class Game:
             anchor="e",
             tag="score")
 
-        # Create the lives label on the canvas
+        # Create the lives label on the canvas and draw the lives
         self.lives_label = self.canvas.create_text(
-            constants.GAME_WIDTH - 20, 70,
+            constants.GAME_WIDTH - 20,
+            70,
             text=f"Lives: {self.lives}",
             fill=constants.GAME_FONT_COLOR,
             font=(constants.GAME_SMALL_FONT),
             anchor="e",
             tag="lives")
+
+        self.draw_lives_bar()
 
         # Create a leaderboard manager
         self.leaderboard_manager = LeaderboardManager("assets/db/leaderboard.txt")
@@ -127,6 +117,10 @@ class Game:
         self.canvas.bind("<b>", self.boss_key)
         self.canvas.bind("<P>", self.pause_resume_game)
         self.canvas.bind("<p>", self.pause_resume_game)
+
+        # If a saved game exists, load it
+        if status == "load":
+            self.load_game()
 
         # Set focus to the canvas
         self.canvas.focus_set()
@@ -179,22 +173,23 @@ class Game:
                 font=(constants.GAME_LARGE_FONT_BOLD),
                 anchor="center",
                 tag="game_paused")
-            
+
             self.canvas.create_text(
                 constants.GAME_WIDTH // 2,
-                constants.GAME_HEIGHT - 100,
+                constants.GAME_HEIGHT - 200,
                 text="Press P to resume",
                 fill=constants.GAME_FONT_COLOR,
                 font=(constants.GAME_SMALL_FONT),
                 anchor="center",
                 tag="resume_game")
-            
+
             print("Game paused")
 
         else:
             self.paused = False
             self.canvas.delete("game_paused")
             self.canvas.delete("resume_game")
+            self.canvas.delete("save_game")
             print("Game resumed")
 
     def check_collisions(self):
@@ -288,9 +283,48 @@ class Game:
         # Update the lives label on the canvas
         self.canvas.itemconfig(self.lives_label, text=f"Lives: {self.lives}")
 
+        self.destroy_lives_bar()
+
+        self.draw_lives_bar()
+
         # Check if the player has no more lives
         if self.lives <= 0:
             self.game_over() # End the game
+
+    def draw_lives_bar(self):
+        """The draw_lives_bar method draws the lives bar on the canvas."""
+
+        # Draw the lives bar on the canvas
+        for i in range(self.lives):
+            # Set the color of the lives bar
+            lives_bar_color = constants.GAME_FONT_COLOR
+
+            # Check the number of lives left and set the color of the lives bar accordingly
+            match self.lives:
+                case 1:
+                    lives_bar_color = constants.GAME_FONT_COLOR_ERROR
+                case 2:
+                    lives_bar_color = constants.GAME_FONT_COLOR_WARNING
+                case 3:
+                    lives_bar_color = constants.GAME_FONT_COLOR_SUCCESS
+                case _:
+                    lives_bar_color = constants.GAME_FONT_COLOR
+
+            # Draw the lives bar
+            self.canvas.create_rectangle(
+                constants.GAME_WIDTH - 20 - (i + 1) * 30,
+                90,
+                constants.GAME_WIDTH - 20 - i * 30,
+                100,
+                fill=lives_bar_color,
+                outline=lives_bar_color,
+                tag="lives-bar")
+
+    def destroy_lives_bar(self):
+        """The destroy_lives_bar method destroys the lives bar on the canvas."""
+
+        # Destroy the lives bar on the canvas
+        self.canvas.delete("lives-bar")
 
     def level_up(self):
         """The level_up method levels up the game and spawns more alien ships."""
@@ -301,6 +335,7 @@ class Game:
 
         if self.lives < 3:
             self.lives += 1 # Increment the lives by 1
+            self.update_lives()
 
         # Print the level up message on the canvas
         self.canvas.create_text(
@@ -865,11 +900,11 @@ class Laser:
         return None
 
 if __name__ == "__main__":
-    def start_game(playing_keys, player_name):
+    def start_game(playing_keys, player_name, status="new"):
         """The start_game function that starts a the game."""
         global game
         root.title(constants.GAME_TITLE)
-        game = Game(root, playing_keys, player_name)
+        game = Game(root, playing_keys, player_name, status)
 
     root = Tk()
     start_menu = StartMenu(root, start_game)
