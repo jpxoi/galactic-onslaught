@@ -8,4 +8,3 @@ Grace 3
 Henry 5
 Ivy 2
 Jack 6
-Tinti 7

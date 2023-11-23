@@ -484,17 +484,27 @@ class Game:
             self.canvas.move(self.bg_image_2, 0, -2 * constants.GAME_HEIGHT)
 
     def pixel_collision(self, x1, y1, image1, x2, y2, image2):
+        # Bounding box check
+        if not (x1 < x2 + image2.width() and x1 + image1.width() > x2 and y1 < y2 + image2.height() and y1 + image1.height() > y2):
+            return False  # No collision
+        
+        print(f"Checking collision between {image1} and {image2}")
+
         """The pixel_collision method checks if two images collide comparing its RGB values."""
         # Get the overlapping rectangle coordinates
         x_overlap = max(int(x1), int(x2))
+        print(f"x_overlap: {x_overlap}")
         y_overlap = max(int(y1), int(y2))
+        print(f"y_overlap: {y_overlap}")
         x_end = min(int(x1) + image1.width(), int(x2) + image2.width())
+        print(f"x_end: {x_end}")
         y_end = min(int(y1) + image1.height(), int(y2) + image2.height())
+        print(f"y_end: {y_end}")
 
         # Check for overlap within the rectangle
         for x in range(int(x_overlap), int(x_end)):
             for y in range(int(y_overlap), int(y_end)):
-                # Get pixel values (RGBA) - handle the case where images are PhotoImage objects
+                # Get pixel values of the two images at the current position
                 pixel1 = image1.get(x - int(x1), y - int(y1))
                 pixel2 = image2.get(x - int(x2), y - int(y2))
 
