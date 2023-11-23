@@ -119,7 +119,7 @@ class Game:
             tag="lives")
 
         # Create a leaderboard manager
-        self.leaderboard_manager = LeaderboardManager("leaderboard.txt")
+        self.leaderboard_manager = LeaderboardManager("assets/db/leaderboard.txt")
 
         # Bind the key events to the corresponding methods
         self.canvas.bind("<B>", self.boss_key)
