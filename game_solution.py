@@ -28,6 +28,8 @@ This game imports the following modules:
 """
 
 from tkinter import Tk, Canvas, PhotoImage
+import os
+import sys
 import random
 import math
 import time
@@ -47,7 +49,7 @@ class Game:
 
         # Set the title and geometry of the root window
         self.master.title(constants.GAME_TITLE)
-
+        self.master.resizable(False, False)
         self.create_window()
 
         # Create and pack the canvas widget and pack it to the root window
@@ -177,6 +179,7 @@ class Game:
                     if self.space_fighter.current_sprite == "main":
                         self.lives -= 1 # Decrement the lives by 1
                         self.update_lives() # Update the lives label on the canvas
+                        self.space_fighter.shot_animation() # Play the shot animation
 
                     alien_ship.alien_lasers.remove(alien_laser) # Remove the alien laser
 
@@ -193,6 +196,7 @@ class Game:
                 if self.space_fighter.current_sprite == "main":
                     self.lives -= 1 # Decrement the lives by 1
                     self.update_lives()
+                    self.space_fighter.shot_animation() # Play the shot animation
 
                 if self.space_fighter.current_sprite == "super":
                     self.update_score()
@@ -298,8 +302,11 @@ class Game:
             anchor="center",
             tag="game_over")
 
-        # Stop the game
-        self.stop_game()
+        # Wait for shot animation to finish before destroying the space fighter
+        self.canvas.after(200, self.space_fighter.destroyed_animation)
+
+        # Wait for the animation to finish before stopping the game
+        self.canvas.after(800, self.stop_game)
 
         # Update the leaderboard
         self.update_leaderboard()
@@ -382,10 +389,12 @@ class Game:
         # Set focus to the canvas
         self.canvas.focus_set()
 
-    def return_to_menu(self):
+    def return_to_menu(self, _):
         """The return_to_menu method returns to the start menu."""
         # Destroy the canvas
         self.canvas.destroy()
+
+        os.execv(sys.executable, ['python'] + sys.argv)
 
     def scroll_background(self, speed):
         """The scroll_background method scrolls the background images vertically."""
@@ -447,7 +456,10 @@ class SpaceFighter:
         # Load and store the space fighter sprites as a dictionary
         self.space_fighter_sprites = {
             "main": PhotoImage(file="assets/img/space-fighter-main.png"),
-            "super": PhotoImage(file="assets/img/space-fighter-super.png")
+            "super": PhotoImage(file="assets/img/space-fighter-super.png"),
+            "shot": PhotoImage(file="assets/img/space-fighter-shot.png"),
+            "destroyed": PhotoImage(file="assets/img/space-fighter-destroyed.png"),
+            "explosion": PhotoImage(file="assets/img/space-fighter-explosion.png")
             # Sprites generated using Canva's AI image generator Magic Media [https://www.canva.com/ai-image-generator/]
             # Input prompt "3D 4K Animated and Futuristic Space Fighter. 2D view from the top of it. Place it on a black background."
             # Background removed using Canva's Magic Studio [https://www.canva.com/magic/].
@@ -575,6 +587,48 @@ class SpaceFighter:
             # Remove the laser if it goes beyond the top of the canvas
             if laser.off_screen(0):
                 self.lasers.remove(laser)
+
+    def shot_animation(self):
+        """The shot_animation method animates the space fighter when it gets hit by a laser."""
+
+        self.current_sprite = "shot"
+        self.canvas.itemconfig(
+            self.space_fighter_image,
+            image=self.space_fighter_sprites[self.current_sprite])
+
+        # Animate the space fighter
+        self.canvas.after(200, self.remove_shot_animation)
+
+    def remove_shot_animation(self):
+        """The remove_shot_animation method removes the space fighter from the canvas."""
+
+        self.current_sprite = "main"
+        self.canvas.itemconfig(
+            self.space_fighter_image,
+            image=self.space_fighter_sprites[self.current_sprite])
+
+    def destroyed_animation(self):
+        """The destroyed_animation method animates the space fighter when it gets destroyed."""
+
+        self.current_sprite = "destroyed"
+        self.canvas.itemconfig(
+            self.space_fighter_image,
+            image=self.space_fighter_sprites[self.current_sprite])
+
+        # Animate the space fighter
+        self.canvas.after(200, self.explosion_animation)
+
+    def explosion_animation(self):
+        """The explosion_animation method animates the explosion of the space fighter."""
+
+        # Change the sprite of the space fighter to explosion
+        self.current_sprite = "explosion"
+        self.canvas.itemconfig(
+            self.space_fighter_image,
+            image=self.space_fighter_sprites[self.current_sprite])
+
+        # Remove the space fighter after 200 milliseconds
+        self.canvas.after(200, self.remove_space_fighter)
 
     def remove_space_fighter(self):
         """The remove_space_fighter method removes the space fighter from the canvas."""

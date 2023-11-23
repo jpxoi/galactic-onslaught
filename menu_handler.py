@@ -2,6 +2,7 @@
 Module for the StartMenu class, which represents the start menu of the game.
 """
 
+import os
 from tkinter import Canvas, PhotoImage, Entry, Button, StringVar, Radiobutton
 import constants
 
@@ -16,7 +17,9 @@ class StartMenu:
 
         # Set the title and geometry of the root window
         self.master.title(constants.GAME_TITLE)
+        self.master.resizable(False, False)
         self.create_window()
+
         self.start_game_callback = start_game_callback
 
         # Calculate the center of the canvas and store it as instance variables
