@@ -2,7 +2,6 @@
 Module for the StartMenu class, which represents the start menu of the game.
 """
 
-import os
 from tkinter import Canvas, PhotoImage, Entry, Button, StringVar, Radiobutton
 import constants
 
