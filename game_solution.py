@@ -68,6 +68,7 @@ class Game:
         self.paused = False
         self.level = 0
         self.game_over_status = False
+        self.scroll_speed = 0
 
         # Load and store the background image as an instance variable
         self.background_image = PhotoImage(file="assets/img/bg/background.png")
@@ -124,6 +125,8 @@ class Game:
         # Bind the key events to the corresponding methods
         self.canvas.bind("<B>", self.boss_key)
         self.canvas.bind("<b>", self.boss_key)
+        self.canvas.bind("<P>", self.pause_resume_game)
+        self.canvas.bind("<p>", self.pause_resume_game)
 
         # Set focus to the canvas
         self.canvas.focus_set()
@@ -151,8 +154,8 @@ class Game:
     def clock(self):
         """The clock method updates the game every frame."""
         # Check if the game is not yet over or paused
-        if not self.game_over_status or not self.paused:
-            # Update the screen
+        if not self.game_over_status:
+            self.scroll_speed = self.alien_ship_speed // 2
             self.update_screen()
 
             # Check if the player has destroyed an alien ship
@@ -162,6 +165,37 @@ class Game:
             self.check_collisions()
 
         self.master.after(1000 // constants.GAME_SPEED, self.clock)
+
+    def pause_resume_game(self, _):
+        """The pause_resume_game method pauses or resumes the game."""
+        if not self.paused:
+            self.paused = True
+
+            self.canvas.create_text(
+                constants.GAME_WIDTH // 2,
+                constants.GAME_HEIGHT // 2,
+                text="GAME PAUSED",
+                fill=constants.GAME_FONT_COLOR,
+                font=(constants.GAME_LARGE_FONT_BOLD),
+                anchor="center",
+                tag="game_paused")
+            
+            self.canvas.create_text(
+                constants.GAME_WIDTH // 2,
+                constants.GAME_HEIGHT - 100,
+                text="Press P to resume",
+                fill=constants.GAME_FONT_COLOR,
+                font=(constants.GAME_SMALL_FONT),
+                anchor="center",
+                tag="resume_game")
+            
+            print("Game paused")
+
+        else:
+            self.paused = False
+            self.canvas.delete("game_paused")
+            self.canvas.delete("resume_game")
+            print("Game resumed")
 
     def check_collisions(self):
         """The check_collisions method checks for collisions between game elements."""
@@ -231,15 +265,16 @@ class Game:
 
     def update_screen(self):
         """The update_screen method updates the game every clock tick."""
-        self.scroll_background(self.alien_ship_speed // 2)
+        if not self.paused:
+            self.scroll_background(self.scroll_speed)
 
-        # Move the lasers
-        self.space_fighter.move_lasers()
+            # Move the lasers
+            self.space_fighter.move_lasers()
 
-        # Move the alien ship and handle shooting
-        for alien_ship in self.alien_ships:
-            alien_ship.move()
-            alien_ship.move_lasers()
+            # Move the alien ship and handle shooting
+            for alien_ship in self.alien_ships:
+                alien_ship.move()
+                alien_ship.move_lasers()
 
     def update_score(self):
         """The update_score method updates the score of the player."""

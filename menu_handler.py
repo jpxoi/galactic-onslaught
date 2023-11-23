@@ -59,7 +59,7 @@ class StartMenu:
         self.create_text(
             center_x,
             center_y - 350,
-            constants.GAME_TITLE,
+            constants.GAME_TITLE.upper(),
             constants.GAME_LARGE_FONT_BOLD,
             constants.GAME_FONT_COLOR)
 
@@ -141,6 +141,13 @@ class StartMenu:
             constants.GAME_SMALL_FONT,
             constants.GAME_FONT_COLOR)
 
+        self.create_text(
+            center_x,
+            center_y + 300,
+            "Press P to pause the game",
+            constants.GAME_SMALL_FONT,
+            constants.GAME_FONT_COLOR)
+
         # Create the game credits
         self.create_text(
             center_x,
@@ -183,7 +190,8 @@ class StartMenu:
             self.start_menu_canvas,
             text=text, command=command,
             font=(constants.GAME_SMALL_FONT),
-            bg="white", fg="black",
+            bg="white",
+            fg="black",
             activebackground="white",
             activeforeground="black",
             relief="flat",
