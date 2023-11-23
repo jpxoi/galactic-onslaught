@@ -8,14 +8,14 @@ GAME_HEIGHT = 900 # Game window height
 GAME_SPEED = 60 # Game speed (FPS)
 
 # Define font properties
-GAME_FONT_FAMILY = "Consolas"
+GAME_FONT_FAMILY = "Trebuchet MS"
 GAME_FONT_SIZE = (18, 24, 32, 48)
 
 # Define font color constants
 GAME_FONT_COLOR = "white"
-GAME_FONT_COLOR_ERROR = "red"
-GAME_FONT_COLOR_WARNING = "orange"
-GAME_FONT_COLOR_SUCCESS = "green"
+GAME_FONT_COLOR_ERROR = "#F36A68"
+GAME_FONT_COLOR_WARNING = "#F9AE61"
+GAME_FONT_COLOR_SUCCESS = "#84D792"
 
 # Define font style constants
 GAME_FONT_STYLE_NORMAL = "normal"

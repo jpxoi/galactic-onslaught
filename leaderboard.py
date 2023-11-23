@@ -21,7 +21,12 @@ Methods:
 """
 
 class LeaderboardManager:
-    """Class to manage the leaderboard file"""
+    """
+    Class to manage the leaderboard file
+    It allows appending, updating, reading, and sorting of entries
+    In the leaderboard file, each line contains a player name and a score
+    A leaderboard entry is represented by a dictionary with keys "playerName" and "score"
+    """
     def __init__(self, scores_file):
         self.scores_file = scores_file
 

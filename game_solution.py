@@ -1,6 +1,11 @@
 """
-Galactic Onslaught is a 2D space shooter game developed by Jean Paul Fernandez,
-inspired by the classic arcade game Space Invaders.
+Galactic Onslaught is a 2D space shooter game inspired by the classic arcade game Space Invaders.
+The player controls a space fighter and must destroy waves of alien ships.
+The player wins the game by destroying all the alien ships.
+The player loses the game if the player runs out of lives.
+
+Author: Jean Paul Fernandez
+Date: 2023-11-24
 
 This game contains the following classes:
     - StartMenu: The StartMenu class represents the start menu of the game.
@@ -8,10 +13,6 @@ This game contains the following classes:
     - SpaceFighter: The SpaceFighter class represents the space fighter in the game.
     - AlienShip: The AlienShip class represents the alien ship in the game.
     - Laser: The Laser class represents the laser beams in the game.
-
-This game also contains the following modules:
-    - constants: This module contains all the constants used in the game.
-    - leaderboard: This module contains the LeaderboardManager class which manages the leaderboard.
 """
 
 from tkinter import Tk, Canvas, PhotoImage, Entry, Button, StringVar, Radiobutton
@@ -22,7 +23,10 @@ import constants
 from leaderboard import LeaderboardManager
 
 class StartMenu:
-    """The StartMenu class represents the start menu of the game."""
+    """
+    The StartMenu class represents the start menu of the game,
+    which contains the main menu, game instructions, and game credits.
+    """
     def __init__(self, master, start_game_callback):
         # Store the root window as an instance variable
         self.master = master
@@ -112,7 +116,7 @@ class StartMenu:
             center_x,
             center_y - 75,
             "Choose Space Fighter Controls:",
-            constants.GAME_SMALL_FONT,
+            constants.GAME_SMALL_FONT_BOLD,
             constants.GAME_FONT_COLOR)
 
         self.create_radio_button(
@@ -258,7 +262,11 @@ class StartMenu:
         self.start_game_callback(chosen_keys, player_name)
 
 class Game:
-    """The Game class represents the game window and its contents."""
+    """
+    The Game class represents the game window and its contents.
+    It manages the game loop and the game elements.
+    The game loop updates the game every frame.
+    """
     def __init__(self, master, playing_keys, player_name):
         # Store the root window as an instance variable
         self.master = master
@@ -361,8 +369,73 @@ class Game:
             if len(self.alien_ships) == 0:
                 self.level_up()
 
-        # Check if the game is not yet over or paused
+            self.check_collisions()
+
         self.master.after(1000 // constants.GAME_SPEED, self.clock)
+
+    def check_collisions(self):
+        """The check_collisions method checks for collisions between game elements."""
+        # Check if the player has been hit by an alien laser
+        for alien_ship in self.alien_ships:
+            for alien_laser in alien_ship.alien_lasers:
+                if self.pixel_collision(
+                    self.space_fighter.x,
+                    self.space_fighter.y,
+                    self.space_fighter.space_fighter_sprites[self.space_fighter.current_sprite],
+                    alien_laser.x,
+                    alien_laser.y,
+                    alien_laser.laser_sprites[alien_laser.current_sprite]):
+
+                    if self.space_fighter.current_sprite == "main":
+                        self.lives -= 1 # Decrement the lives by 1
+                        self.update_lives() # Update the lives label on the canvas
+
+                    alien_ship.alien_lasers.remove(alien_laser) # Remove the alien laser
+
+        # Check if the player has been hit by an alien ship
+        for alien_ship in self.alien_ships:
+            if self.pixel_collision(
+                self.space_fighter.x,
+                self.space_fighter.y,
+                self.space_fighter.space_fighter_sprites[self.space_fighter.current_sprite],
+                alien_ship.x,
+                alien_ship.y,
+                alien_ship.alien_ship_sprites[alien_ship.current_sprite]):
+
+                if self.space_fighter.current_sprite == "main":
+                    self.lives -= 1 # Decrement the lives by 1
+                    self.update_lives()
+
+                if self.space_fighter.current_sprite == "super":
+                    self.update_score()
+
+                alien_ship.destroyed_animation() # Play the destroyed animation
+
+                # Remove the alien ship from the alien_ships array
+                if alien_ship in self.alien_ships:
+                    self.alien_ships.remove(alien_ship)
+
+        # Check if the alien ship has been hit by a laser
+        for alien_ship in self.alien_ships:
+            for laser in self.space_fighter.lasers:
+                if self.pixel_collision(
+                    alien_ship.x,
+                    alien_ship.y,
+                    alien_ship.alien_ship_sprites[alien_ship.current_sprite],
+                    laser.x,
+                    laser.y,
+                    laser.laser_sprites[laser.current_sprite]):
+                    self.update_score() # Update the score label on the canvas
+
+                    alien_ship.destroyed_animation() # Play the destroyed animation
+
+                    # Remove the alien ship from the alien_ships array
+                    if alien_ship in self.alien_ships:
+                        self.alien_ships.remove(alien_ship)
+
+                    # Remove the laser from the lasers array
+                    if laser in self.space_fighter.lasers:
+                        self.space_fighter.lasers.remove(laser)
 
     def update_screen(self):
         """The update_screen method updates the game every clock tick."""
@@ -399,6 +472,9 @@ class Game:
         self.alien_ship_speed = int(self.level**0.6) + 1 # Calculate the alien ship speed
         self.space_fighter.speed = int(self.level**0.6)+14 # Calculate the space fighter speed
 
+        if self.lives < 3:
+            self.lives += 1 # Increment the lives by 1
+
         # Print the level up message on the canvas
         self.canvas.create_text(
             constants.GAME_WIDTH // 2,
@@ -409,13 +485,16 @@ class Game:
             anchor="center",
             tag="level_up")
 
-        # Remove the level up message after 2 seconds
-        self.canvas.after(2000, self.canvas.delete("level_up"))
-
         # Spawn the alien ships for the next wave
         for _ in range(self.wave_length):
             enemy = AlienShip(self.canvas, self.alien_ship_speed)
             self.alien_ships.append(enemy)
+
+        self.canvas.after(3000, self.remove_level_up_message)
+
+    def remove_level_up_message(self):
+        """The remove_level_up method removes the level up message from the canvas."""
+        self.canvas.delete("level_up")
 
     def game_over(self):
         """The game_over method stops the game and prints the game over screen."""
@@ -431,8 +510,31 @@ class Game:
             anchor="center",
             tag="game_over")
 
+        # Stop the game
+        self.stop_game()
+
         # Update the leaderboard
         self.update_leaderboard()
+
+    def stop_game(self):
+        """The stop_game method stops the game."""
+        # Set the paused status to True
+        self.paused = True
+
+        # Stop and remove the space fighter
+        self.space_fighter.speed = 0
+        self.space_fighter.remove_space_fighter()
+
+        # Stop and remove the alien ships
+        for alien_ship in self.alien_ships:
+            alien_ship.speed = 0
+            alien_ship.remove_alien_ship()
+
+            # Stop and remove the alien lasers
+            for alien_laser in alien_ship.alien_lasers:
+                alien_laser.speed = 0
+                if alien_laser in alien_ship.alien_lasers:
+                    alien_ship.alien_lasers.remove(alien_laser)
 
     def update_leaderboard(self):
         """The update_leaderboard method updates the leaderboard."""
@@ -525,12 +627,19 @@ class Game:
 
         # Create the leaderboard entries on the canvas
         for i, entry in enumerate(sorted_leaderboard):
+            if entry["playerName"] == self.player_name:
+                font_size = constants.GAME_SMALL_FONT_BOLD
+                font_color = constants.GAME_FONT_COLOR_SUCCESS
+            else:
+                font_size = constants.GAME_SMALL_FONT
+                font_color = constants.GAME_FONT_COLOR
+
             self.canvas.create_text(
                 constants.GAME_WIDTH // 2 - 125,
                 constants.GAME_HEIGHT // 2 - 200 + (i * 50),
                 text=f"{i + 1}",
-                fill=constants.GAME_FONT_COLOR,
-                font=(constants.GAME_SMALL_FONT),
+                fill=font_color,
+                font=(font_size),
                 anchor="center",
                 tag="leaderboard-entry-rank")
 
@@ -538,8 +647,8 @@ class Game:
                 constants.GAME_WIDTH // 2 - 50,
                 constants.GAME_HEIGHT // 2 - 200 + (i * 50),
                 text=f"{entry['playerName']}",
-                fill=constants.GAME_FONT_COLOR,
-                font=(constants.GAME_SMALL_FONT),
+                fill=font_color,
+                font=(font_size),
                 anchor="w",
                 tag="leaderboard-entry-name")
 
@@ -547,8 +656,8 @@ class Game:
                 constants.GAME_WIDTH // 2 + 125,
                 constants.GAME_HEIGHT // 2 - 200 + (i * 50),
                 text=f"{entry['score']}",
-                fill=constants.GAME_FONT_COLOR,
-                font=(constants.GAME_SMALL_FONT),
+                fill=font_color,
+                font=(font_size),
                 anchor="center",
                 tag="leaderboard-entry-score")
 
@@ -591,8 +700,35 @@ class Game:
             # Reset its position above the first background image
             self.canvas.move(self.bg_image_2, 0, -2 * constants.GAME_HEIGHT)
 
+    def pixel_collision(self, x1, y1, image1, x2, y2, image2):
+        """The pixel_collision method checks if two images collide comparing its RGB values."""
+        # Get the overlapping rectangle coordinates
+        x_overlap = max(int(x1), int(x2))
+        y_overlap = max(int(y1), int(y2))
+        x_end = min(int(x1) + image1.width(), int(x2) + image2.width())
+        y_end = min(int(y1) + image1.height(), int(y2) + image2.height())
+
+        # Check for overlap within the rectangle
+        for x in range(int(x_overlap), int(x_end)):
+            for y in range(int(y_overlap), int(y_end)):
+                # Get pixel values (RGBA) - handle the case where images are PhotoImage objects
+                pixel1 = image1.get(x - int(x1), y - int(y1))
+                pixel2 = image2.get(x - int(x2), y - int(y2))
+
+                print(f"pixel1: {pixel1}, pixel2: {pixel2}")
+
+                # Check if both pixels are
+                if pixel1 != (0, 0, 0) and pixel2 != (0, 0, 0):
+                    print("Collision detected")
+                    return True  # Collision detected
+
+        return False  # No collision
+
 class SpaceFighter:
-    """The SpaceFighter class represents the space fighter in the game."""
+    """
+    The SpaceFighter class represents the space fighter in the game.
+    It manages the movement and shooting of the space fighter.
+    """
     # Define the constructor method of the SpaceFighter class
     def __init__(self, canvas, playing_keys):
         self.canvas = canvas
@@ -738,7 +874,12 @@ class SpaceFighter:
         self.canvas.delete(self.space_fighter_image)
 
 class AlienShip:
-    """The AlienShip class represents the alien ship in the game."""
+    """
+    The AlienShip class represents the alien ship in the game.
+    It manages the movement and shooting of the alien ship.
+    A new wave of alien ships is created every time the player
+    destroys an alien ship wave.
+    """
     def __init__(self, canvas, speed):
         self.canvas = canvas
 
@@ -871,7 +1012,11 @@ class AlienShip:
         self.canvas.delete(self.alien_ship_image)
 
 class Laser:
-    """The Laser class represents the laser beam in the game."""
+    """
+    The Laser class represents the laser beam in the game.
+    It manages the movement of the laser beam.
+    It can be shot from the space fighter or the alien ship.
+    """
     def __init__(self, canvas, x, y, speed = 10, direction = "up", sprite = "main"):
         self.canvas = canvas
 
@@ -892,7 +1037,7 @@ class Laser:
 
         # Properties of the laser
         self.current_sprite = sprite
-        self.laser_image = self.laser_sprites[sprite]
+        self.laser_image = self.laser_sprites[self.current_sprite]
 
         # Display the laser on the canvas and store it as an instance variable
         self.laser_beam = self.canvas.create_image(
