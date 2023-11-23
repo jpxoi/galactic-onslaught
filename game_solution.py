@@ -493,13 +493,9 @@ class Game:
         """The pixel_collision method checks if two images collide comparing its RGB values."""
         # Get the overlapping rectangle coordinates
         x_overlap = max(int(x1), int(x2))
-        print(f"x_overlap: {x_overlap}")
         y_overlap = max(int(y1), int(y2))
-        print(f"y_overlap: {y_overlap}")
         x_end = min(int(x1) + image1.width(), int(x2) + image2.width())
-        print(f"x_end: {x_end}")
         y_end = min(int(y1) + image1.height(), int(y2) + image2.height())
-        print(f"y_end: {y_end}")
 
         # Check for overlap within the rectangle
         for x in range(int(x_overlap), int(x_end)):
