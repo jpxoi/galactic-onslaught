@@ -8,7 +8,6 @@ import sys
 import random
 import math
 import time
-import pickle
 import constants
 from leaderboard import LeaderboardManager
 from menu_handler import StartMenu
@@ -19,7 +18,7 @@ class Game:
     It manages the game loop and the game elements.
     The game loop updates the game every frame.
     """
-    def __init__(self, master, playing_keys, player_name, status):
+    def __init__(self, master, playing_keys, player_name):
         # Store the root window as an instance variable
         self.master = master
 
@@ -905,11 +904,11 @@ class Laser:
         return None
 
 if __name__ == "__main__":
-    def start_game(playing_keys, player_name, status="new"):
+    def start_game(playing_keys, player_name):
         """The start_game function that starts a the game."""
         global game
         root.title(constants.GAME_TITLE)
-        game = Game(root, playing_keys, player_name, status)
+        game = Game(root, playing_keys, player_name)
 
     root = Tk()
     start_menu = StartMenu(root, start_game)

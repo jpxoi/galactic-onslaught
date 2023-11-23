@@ -72,23 +72,15 @@ class StartMenu:
 
         # Create the main buttons
         self.create_button(
-            center_x - 300,
-            center_y - 175,
-            "Resume Game",
-            self.load_game,
-            "w",
-            "resume-button")
-
-        self.create_button(
-            center_x + 30,
+            center_x - 200,
             center_y - 175,
             "New Game",
             self.start_game,
-            "center",
+            "w",
             "new-game-button")
 
         self.create_button(
-            center_x + 300,
+            center_x + 200,
             center_y - 175,
             "Quit",
             self.master.destroy,
@@ -246,9 +238,6 @@ class StartMenu:
             bd=0)
 
         self.start_menu_canvas.create_window(x, y + 40, window=self.input_field, anchor="center")
-
-    def load_game(self):
-        self.start_game(True)
 
     def start_game(self, load_game=False):
         """Start the game."""
