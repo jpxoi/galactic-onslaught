@@ -154,7 +154,7 @@ class StartMenu:
             "Press P to pause the game",
             constants.GAME_SMALL_FONT,
             constants.GAME_FONT_COLOR)
-        
+
         self.create_text(
             center_x,
             center_y + 240,
