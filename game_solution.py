@@ -1011,12 +1011,14 @@ class Laser:
         """The off_screen method checks if the laser is off the screen."""
         # Check if the laser is off the screen according to its direction
         if self.direction == "up":
+            # Return True if the laser is above the canvas
             return self.y <= height
 
         if self.direction == "down":
+            # Return True if the laser is below the canvas
             return self.y >= height
 
-        # If the direction is not up or down, return False
+        # If the direction is not up or down, return none
         return None
 
 if __name__ == "__main__":
