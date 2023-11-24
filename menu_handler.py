@@ -1,7 +1,25 @@
 """
-Module for the StartMenu class, which represents the start menu of the game.
+Galactic Onslaught - Menu Handler Module
+Author: Jean Paul Fernandez
+Date: 2023-11-24
+Version: 1.0
+Language: Python 3.11.2
+IDE: Visual Studio Code 1.84.2
+Development Platform: MacOs Sonoma 14.1
+
+Description:
+This module contains the start menu class, which represents the start menu of the game.
+The start menu contains the main menu, game instructions, and game credits. The start menu
+also allows the player to choose the playing keys and enter their player name. The start
+menu is displayed when the game is launched.
+
+Implementation:
+The menu handler module is imported by the main game module. The start menu class is
+instantiated in the main game module and is used to display the start menu. The start
+menu class is also used to retrieve the chosen playing keys and player name.
 """
 
+# Import modules
 from tkinter import Canvas, PhotoImage, Entry, Button, StringVar, Radiobutton
 import constants
 
@@ -10,6 +28,7 @@ class StartMenu:
     The StartMenu class represents the start menu of the game,
     which contains the main menu, game instructions, and game credits.
     """
+
     def __init__(self, master, start_game_callback):
         # Store the root window as an instance variable
         self.master = master
@@ -31,7 +50,7 @@ class StartMenu:
         # Create and pack the start menu canvas
         self.start_menu_canvas = Canvas(
             master,
-            bg="black",
+            bg="#171717",
             width=constants.GAME_WIDTH,
             height=constants.GAME_HEIGHT)
 
@@ -43,7 +62,7 @@ class StartMenu:
         self.button_image = PhotoImage(file="")
 
         # Load and store the background image for the start menu
-        self.background_image = PhotoImage(file="assets/img/bg/background.png")
+        self.background_image = PhotoImage(file="assets/img/bg/background-dark.png")
         # Background graphic made by me (Jean Paul Fernandez) using Canva's image editor [https://www.canva.com].
         # Additional graphics made by Rostik Solonenko, retrieved from Canva's free media library [https://www.canva.com/features/free-stock-photos/].
         # Editable file available as view-only at https://www.canva.com/design/DAF0EFDjc3g/cApy-RMGI9pTI6kQi9Xrmg/edit.
@@ -55,7 +74,7 @@ class StartMenu:
             anchor="center",
             image=self.background_image)
 
-        # Create start menu elements
+        # Create start menu title
         self.create_text(
             center_x,
             center_y - 350,
@@ -63,17 +82,18 @@ class StartMenu:
             constants.GAME_LARGE_FONT_BOLD,
             constants.GAME_FONT_COLOR)
 
+        # Create the input field for the player name
         self.create_input_field(
             center_x,
-            center_y - 280,
+            center_y - 290,
             "Enter your player name:",
             constants.GAME_SMALL_FONT,
             constants.GAME_FONT_COLOR)
 
-        # Create the main buttons
+        # Create the new game and quit buttons
         self.create_button(
             center_x - 200,
-            center_y - 175,
+            center_y - 190,
             "New Game",
             self.start_game,
             "w",
@@ -81,70 +101,79 @@ class StartMenu:
 
         self.create_button(
             center_x + 200,
-            center_y - 175,
+            center_y - 190,
             "Quit",
             self.master.destroy,
             "e",
             "quit-button")
         # Button images made by PixelChoice, retrieved from Canva's free media library [https://www.canva.com/features/free-stock-photos/].
 
-        # Create the radio buttons for choosing the playing keys
+        # Create the labels for the playing keys options selector
         self.create_text(
             center_x,
-            center_y - 75,
+            center_y - 100,
             "Choose Space Fighter Controls:",
             constants.GAME_SMALL_FONT_BOLD,
             constants.GAME_FONT_COLOR)
 
+        # Create the radio buttons for the playing key options (Arrow Keys and WASD Keys)
         self.create_radio_button(
             center_x - 100,
-            center_y + 25,
+            center_y - 10,
             "Arrow Keys",
             "arrows",
             "arrow-keys")
 
         self.create_radio_button(
             center_x + 100,
-            center_y + 25,
+            center_y - 10,
             "WASD Keys",
             "wasd",
             "wasd-keys")
         # Playing keys graphics made by Yuliia Duliakova, retrieved from Canva's free media library [https://www.canva.com/features/free-stock-photos/].
 
+        # Create the game instructions title
+        self.create_text(
+            center_x,
+            center_y + 110,
+            "Game Controls:",
+            constants.GAME_SMALL_FONT_BOLD,
+            constants.GAME_FONT_COLOR)
+
         # Create the game instructions
         self.create_text(
             center_x,
-            center_y + 150,
-            "Game Controls:",
-            constants.GAME_MEDIUM_FONT_BOLD,
-            constants.GAME_FONT_COLOR)
-
-        self.create_text(
-            center_x,
-            center_y + 200,
+            center_y + 160,
             "Press Spacebar to shoot",
             constants.GAME_SMALL_FONT,
             constants.GAME_FONT_COLOR)
 
         self.create_text(
             center_x,
-            center_y + 250,
-            "Press B to minimize the game",
-            constants.GAME_SMALL_FONT,
-            constants.GAME_FONT_COLOR)
-
-        self.create_text(
-            center_x,
-            center_y + 300,
+            center_y + 200,
             "Press P to pause the game",
             constants.GAME_SMALL_FONT,
             constants.GAME_FONT_COLOR)
+        
+        self.create_text(
+            center_x,
+            center_y + 240,
+            "Press Ctrl+Shift+B to minimize the game",
+            constants.GAME_SMALL_FONT,
+            constants.GAME_FONT_COLOR)
 
-        # Create the game credits
+        # Create the game credits and version
+        self.create_text(
+            center_x,
+            center_y + 325,
+            "Game developed by Jean Paul Fernandez",
+            constants.GAME_SMALLEST_FONT,
+            constants.GAME_FONT_COLOR)
+
         self.create_text(
             center_x,
             center_y + 350,
-            "Game developed by Jean Paul Fernandez",
+            "Version 1.0",
             constants.GAME_SMALLEST_FONT,
             constants.GAME_FONT_COLOR)
 
