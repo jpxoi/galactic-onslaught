@@ -1,26 +1,24 @@
 """
-Module: leaderboard
+Galactic Onslaught - Leaderboard Module
+Author: Jean Paul Fernandez
+Date: 2023-11-24
+Version: 1.0
+Language: Python 3.11.2
+IDE: Visual Studio Code 1.84.2
+Development Platform: MacOs Sonoma 14.1
 
-This module defines the `LeaderboardManager` class, which provides functionality for
-managing a leaderboard file. The leaderboard file is assumed to contain entries with
-player names and corresponding scores.
+Description:
+This module contains the leaderboard manager class, which manages the leaderboard file.
+The leaderboard file contains the top scores of the players who have played the game.
+The leaderboard manager class allows appending, updating, reading, and sorting of entries
+in the leaderboard file.
 
-Classes:
-- LeaderboardManager: Manages the leaderboard file, allowing appending, updating,
-                        reading, and sorting of entries.
-
-Methods:
-- __init__(self, scores_file): Initializes the LeaderboardManager instance with the
-                                specified leaderboard file.
-- append_leaderboard(self, new_entry): Appends a new entry to the leaderboard file.
-- update_leaderboard(self, update_entry): Updates an existing entry in the leaderboard file.
-- read_leaderboard(self): Reads the leaderboard file and returns a list of dictionaries
-                            representing entries.
-- sort_leaderboard(self, leaderboard): Sorts the given leaderboard by score in descending
-                                        order and keeps only the top 10 entries.
-- print_leaderboard(self, canvas, sorted_leaderboard, player_name): Prints the leaderboard
+Implementation:
+This module is imported by the main game module. The leaderboard manager class is
+instantiated in the main game module and is used to manage the leaderboard file.
 """
 
+# Import modules
 import constants
 
 class LeaderboardManager:
