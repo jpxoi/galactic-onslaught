@@ -4,7 +4,7 @@ Charlie 5
 David 2
 Eva 4
 Frank 6
-Grace 3
+Grace 1
 Henry 5
 Ivy 2
 Jack 6

@@ -240,14 +240,11 @@ class Game:
                 anchor="center",
                 tag="resume_game")
 
-            print("Game paused")
-
         else:
             self.paused = False
             self.canvas.delete("game_paused")
             self.canvas.delete("resume_game")
             self.canvas.delete("save_game")
-            print("Game resumed")
 
     def check_collisions(self):
         """The check_collisions method checks for collisions between game elements."""
@@ -551,8 +548,6 @@ class Game:
         if not (x1 < x2 + image2.width() and x1 + image1.width() > x2 and y1 < y2 + image2.height() and y1 + image1.height() > y2):
             return False  # No collision
 
-        print(f"Checking collision between {image1} and {image2}")
-
         # Get the overlapping rectangle coordinates
         x_overlap = max(int(x1), int(x2))
         y_overlap = max(int(y1), int(y2))
@@ -566,11 +561,8 @@ class Game:
                 pixel1 = image1.get(x - int(x1), y - int(y1))
                 pixel2 = image2.get(x - int(x2), y - int(y2))
 
-                print(f"pixel1: {pixel1}, pixel2: {pixel2}")
-
                 # Check if both pixels are
                 if pixel1 != (0, 0, 0) and pixel2 != (0, 0, 0):
-                    print("Collision detected")
                     return True  # Collision detected
 
         return False  # No collision
