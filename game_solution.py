@@ -36,13 +36,13 @@ Game, SpaceFighter, AlienShip, and Laser.
 """
 
 # Import modules
-from tkinter import Tk, Canvas, PhotoImage
 import os
 import sys
-import random
-import math
 import time
+import math
+import random
 import constants
+from tkinter import Tk, Canvas, PhotoImage
 from leaderboard import LeaderboardManager
 from menu_handler import StartMenu
 

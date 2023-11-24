@@ -20,8 +20,8 @@ menu class is also used to retrieve the chosen playing keys and player name.
 """
 
 # Import modules
-from tkinter import Canvas, PhotoImage, Entry, Button, StringVar, Radiobutton
 import constants
+from tkinter import Canvas, PhotoImage, Entry, Button, StringVar, Radiobutton
 
 class StartMenu:
     """
