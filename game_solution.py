@@ -1,7 +1,41 @@
 """
-Generate new docstring
+Galactic Onslaught - Main Game Module
+Author: Jean Paul Fernandez
+Date: 2023-11-24
+Version: 1.0
+Language: Python 3.11.2
+IDE: Visual Studio Code 1.84.2
+Development Platform: MacOs Sonoma 14.1
+
+Description:
+This file contains the implementation of a game using the tkinter library.
+The game is a space shooter game where the player controls a space fighter and shoots
+laser beams at alien ships. The player must avoid getting hit by the alien lasers and
+must destroy as many alien ships as possible to get a high score. The player has three
+lives and can upgrade their spaceship with a shield if knows the cheat code.
+
+Implementation:
+The game is implemented using the tkinter library. There are four classes in this file:
+Game, SpaceFighter, AlienShip, and Laser.
+
+    - The Game class represents the game window and its contents.
+        It manages the game loop and the game elements.
+        The game loop updates the game every frame.
+
+    - The SpaceFighter class represents the space fighter in the game.
+        It manages the movement and shooting of the space fighter.
+
+    - The AlienShip class represents the alien ship in the game.
+        It manages the movement and shooting of the alien ship.
+        A new wave of alien ships is created every time the player
+        destroys an alien ship wave.
+
+    - The Laser class represents the laser in the game.
+        It manages the movement of the laser.
+        A laser is created every time the player shoots or the alien ship shoots.
 """
 
+# Import modules
 from tkinter import Tk, Canvas, PhotoImage
 import os
 import sys
@@ -14,10 +48,33 @@ from menu_handler import StartMenu
 
 class Game:
     """
-    The Game class represents the game window and its contents.
-    It manages the game loop and the game elements.
-    The game loop updates the game every frame.
+    The Game class represents the main game logic and elements.
+
+    Parameters:
+    - master: The Tkinter master window.
+    - playing_keys: A dictionary containing the key bindings for player controls.
+    - player_name: The name of the player.
+
+    Attributes:
+    - master: The Tkinter master window.
+    - canvas: The Tkinter canvas widget for rendering game elements.
+    - player_name: The name of the player.
+    - score: The player's score.
+    - lives: The number of lives remaining.
+    - paused: A boolean indicating whether the game is paused.
+    - level: The current level of the game.
+    - game_over_status: A boolean indicating whether the game is over.
+    - scroll_speed: The speed at which the background scrolls.
+    - playing_keys: A dictionary containing the key bindings for player controls.
+    - background_image: The image used for the game background.
+    - bg_image_1, bg_image_2: Canvas objects representing the two background images for seamless scrolling.
+    - alien_ships: A list containing instances of AlienShip representing enemy ships.
+    - wave_length: The number of alien ships in a wave.
+    - alien_ship_speed: The speed of alien ships.
+    - space_fighter: An instance of SpaceFighter representing the player's spaceship.
+    - leaderboard_manager: An instance of LeaderboardManager for managing the game leaderboard.
     """
+
     def __init__(self, master, playing_keys, player_name):
         # Store the root window as an instance variable
         self.master = master
@@ -113,9 +170,10 @@ class Game:
         # Create a leaderboard manager
         self.leaderboard_manager = LeaderboardManager("assets/db/leaderboard.txt")
 
+        # Boss key to minimize the game window (Ctrl + Shift + B)
+        self.canvas.bind("<Control-Shift-Key-B>", self.boss_key)
+
         # Bind the key events to the corresponding methods
-        self.canvas.bind("<B>", self.boss_key)
-        self.canvas.bind("<b>", self.boss_key)
         self.canvas.bind("<P>", self.pause_resume_game)
         self.canvas.bind("<p>", self.pause_resume_game)
 
@@ -155,6 +213,8 @@ class Game:
 
     def boss_key(self, _):
         """The boss_key method minimizes the game window."""
+        # Pause the game
+        self.pause_resume_game(_)
         self.master.iconify() # Minimize the game window
 
     def pause_resume_game(self, _):
@@ -191,6 +251,7 @@ class Game:
 
     def check_collisions(self):
         """The check_collisions method checks for collisions between game elements."""
+
         # Check if the player has been hit by an alien laser
         for alien_ship in self.alien_ships:
             for alien_laser in alien_ship.alien_lasers:
@@ -346,8 +407,8 @@ class Game:
 
         # Spawn the alien ships for the next wave
         for _ in range(self.wave_length):
-            enemy = AlienShip(self.canvas, self.alien_ship_speed)
-            self.alien_ships.append(enemy)
+            new_alien_ship = AlienShip(self.canvas, self.alien_ship_speed)
+            self.alien_ships.append(new_alien_ship)
 
         self.canvas.after(3000, self.remove_level_up_message)
 
@@ -364,7 +425,7 @@ class Game:
             constants.GAME_WIDTH // 2,
             constants.GAME_HEIGHT // 2,
             text="GAME OVER",
-            fill=constants.GAME_FONT_COLOR,
+            fill=constants.GAME_FONT_COLOR_ERROR,
             font=(constants.GAME_LARGE_FONT_BOLD),
             anchor="center",
             tag="game_over")
@@ -484,13 +545,14 @@ class Game:
             self.canvas.move(self.bg_image_2, 0, -2 * constants.GAME_HEIGHT)
 
     def pixel_collision(self, x1, y1, image1, x2, y2, image2):
+        """The pixel_collision method checks if two images collide comparing its RGB values."""
+
         # Bounding box check
         if not (x1 < x2 + image2.width() and x1 + image1.width() > x2 and y1 < y2 + image2.height() and y1 + image1.height() > y2):
             return False  # No collision
-        
+
         print(f"Checking collision between {image1} and {image2}")
 
-        """The pixel_collision method checks if two images collide comparing its RGB values."""
         # Get the overlapping rectangle coordinates
         x_overlap = max(int(x1), int(x2))
         y_overlap = max(int(y1), int(y2))
@@ -517,8 +579,24 @@ class SpaceFighter:
     """
     The SpaceFighter class represents the space fighter in the game.
     It manages the movement and shooting of the space fighter.
+
+    Parameters:
+    - canvas: The Tkinter canvas widget for rendering game elements.
+    - playing_keys: A dictionary containing the key bindings for player controls.
+
+    Attributes:
+    - canvas: The Tkinter canvas widget for rendering game elements.
+    - x: The x-coordinate of the space fighter.
+    - y: The y-coordinate of the space fighter.
+    - space_fighter_sprites: A dictionary containing different sprites for the space fighter.
+    - current_sprite: The current sprite of the space fighter.
+    - speed: The speed of the space fighter.
+    - width: The width of the space fighter.
+    - height: The height of the space fighter.
+    - space_fighter_image: The canvas object representing the space fighter.
+    - lasers: A list containing instances of Laser representing the space fighter's lasers.
     """
-    # Define the constructor method of the SpaceFighter class
+
     def __init__(self, canvas, playing_keys):
         self.canvas = canvas
 
@@ -572,7 +650,10 @@ class SpaceFighter:
             self.canvas.bind("<w>", self.move_up)
             self.canvas.bind("<s>", self.move_down)
 
-        self.canvas.bind("<F>", self.update_sprite)
+        # Cheat codes to update the sprite of the space fighter and be invincible
+        self.canvas.bind("<Control-Shift-Key-F>", self.update_sprite)
+
+        # Bind the space bar to the shoot method
         self.canvas.bind("<space>", self.shoot)
 
     def create_space_fighter(self):
@@ -715,7 +796,26 @@ class AlienShip:
     It manages the movement and shooting of the alien ship.
     A new wave of alien ships is created every time the player
     destroys an alien ship wave.
+
+    Parameters:
+    - canvas: The Tkinter canvas widget for rendering game elements.
+    - speed: The speed of the alien ship.
+
+    Attributes:
+    - canvas: The Tkinter canvas widget for rendering game elements.
+    - x: The x-coordinate of the alien ship.
+    - y: The y-coordinate of the alien ship.
+    - alien_ship_sprites: A dictionary containing different sprites for the alien ship.
+    - current_sprite: The current sprite of the alien ship.
+    - speed: The speed of the alien ship.
+    - width: The width of the alien ship.
+    - height: The height of the alien ship.
+    - alien_ship_image: The canvas object representing the alien ship.
+    - alien_lasers: A list containing instances of Laser representing the alien ship's lasers.
+    - shoot_delay: The delay between shots in milliseconds.
+    - last_shot_time: The time of the last shot in milliseconds.
     """
+
     def __init__(self, canvas, speed):
         self.canvas = canvas
 
@@ -852,10 +952,28 @@ class AlienShip:
 
 class Laser:
     """
-    The Laser class represents the laser beam in the game.
-    It manages the movement of the laser beam.
-    It can be shot from the space fighter or the alien ship.
+    The Laser class represents a laser beam in the game.
+    It manages the movement and appearance of the laser on the canvas.
+
+    Parameters:
+    - canvas: The Tkinter canvas widget for rendering game elements.
+    - x: The initial x-coordinate of the laser.
+    - y: The initial y-coordinate of the laser.
+    - speed: The speed of the laser beam (default is 10).
+    - direction: The direction of the laser ("up" or "down", default is "up").
+    - sprite: The sprite of the laser ("main" or "alt", default is "main").
+
+    Attributes:
+    - canvas: The Tkinter canvas widget for rendering game elements.
+    - x: The current x-coordinate of the laser.
+    - y: The current y-coordinate of the laser.
+    - speed: The speed of the laser beam.
+    - direction: The direction of the laser ("up" or "down").
+    - laser_sprites: A dictionary containing different sprites for the laser.
+    - current_sprite: The current sprite of the laser.
+    - laser_image: The canvas object representing the laser beam.
     """
+
     def __init__(self, canvas, x, y, speed = 10, direction = "up", sprite = "main"):
         self.canvas = canvas
 
